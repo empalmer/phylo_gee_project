@@ -1,0 +1,51 @@
+
+
+Make correlation matrix more biologically meaningful
+using more of the structure of the tree
+use phylogenetic tree
+
+Coefficient fixed.
+make more flexible - time varying coefficients.
+
+compositionality in regresison setting.
+
+find log ratio paper
+
+Availability of data:
+
+Is correlation matri positive semidefinite
+
+look up what a corenec product is? how semidefinite things multiply together.
+
+
+Constrain gamma matrix to be postive semidefinite -
+base on a distance
+Do GEES require positive semidefinite?
+
+
+****Look at laplace matrix?
+for use as a distance matrix as the correlation?
+
+
+send log-ratio
+
+look up compositional + longitudinal
+
+
+TODO
+look up time varying coefficients
+look up reduced rank regression
+send Yuan
+   - my internship work
+   -
+
+Directions:
+Omics data integration
+Longitudinal microbiome data
+
+constraint on observations vs means
+
+
+
+After meeting summary:
+How to continue

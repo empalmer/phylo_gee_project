@@ -1,0 +1,18 @@
+
+I skimmed some articles:
+
+One that used linear mixed models for longitudinal compositional data - economics Wang 2019
+
+The Morton paper - 2019 for using logs
+
+Generalized estimating equations for longitudinal studies - Liang -
+
+
+
+Do pseudo code for GEE algorithm.
+
+
+Analysis of Longitudinal data - liang etc.
+
+
+Focus on the how to parametrize the covariance matrix -- solving GEE

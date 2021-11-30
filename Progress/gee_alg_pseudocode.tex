@@ -1,0 +1,52 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\begin{document}
+
+
+
+$Y_i = (Y_i1, \ldots , Y_{it} \ldots , Y_{n_i})$
+
+$E(Y_it) = \mu_{it}$
+
+$X_i = (x_{i1}, \ldots , x_{it}, \ldots, x_{in_i})'$ design matrix
+
+
+$g(\mu_{it}) = \eta_{it} = x_{it}^T \beta$
+
+$V(Y_{it}) = \phi a_{it} = \phi a(\mu_{it})$
+
+$\phi$ - dispersion parameter
+
+
+$V_i = \phi A_i^{1/2}R_i(\alpha)A_i^{1/2}$, where $A_i$  is a diagonal matrix with $k$th diagonal element $a_{ik}$
+
+
+$D_i = A_i \frac{d g^{-1}(\eta_{ik})}{d\eta_{ik}}X_i$
+Generalized estimating equations given by
+$$\sum_{i=1}^K D_i^T V_i^{-1}(Y_i - \mu_i) = 0 $$
+
+std error = $1/a(\mu)$
+
+\begin{algorithm}
+\caption{GEE pseudocode}\label{alg:cap}
+\begin{algorithmic}
+\State Initialize $\beta,\phi,\alpha$
+\While{! convergence}
+  \State $\eta = \mathbf{X}\beta$
+  \State $\mu = g^{-1}(\eta)$
+  \State $e_{ik} = (y_{ik} - \mu_{ik})/\sqrt{a_{ik}}$
+  \State $\phi = \frac{1}{(\sum n_i) - p} \sum_{i = 1}^K \sum_{j = 1}^{n_i} e_{ij}^2$
+  \State Update $\alpha$, $R(\alpha)$ using $\phi$ and $e_{ik}$
+  \State Calculate $R(\alpha)^{-1}$ numerically
+  \State Update $\beta$ using estimating equations
+\EndWhile
+\State Calculate sandwhich variance estimator
+\end{algorithmic}
+\end{algorithm}
+
+
+\end{document}

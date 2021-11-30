@@ -1,0 +1,62 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+%Load useful packages
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage{subcaption}
+\usepackage{subfiles}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+%Information to be included in the title page:
+\title{On Cross-validation for Sparse Reduced Rank Regression}
+\author{Ying Dai}
+\institute{Journal Club, Oregon State University}
+\date{\today}
+%Logo in every slide
+\logo{%
+  \makebox[0.98\paperwidth]{
+    \includegraphics[width=1.5cm,keepaspectratio]{logos/osu_logo.jpg}%
+    \hfill
+  }
+}
+\setbeamertemplate{footline}[frame number]
+\newcommand\myeq{\stackrel{\mathclap{\normalfont\mbox{def}}}{=}}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Overview}
+    \begin{itemize}
+        \item \textbf{High-dimensional} data analysis $\Rightarrow$
+        \textbf{regularization methods}
+        \begin{itemize}
+            \item sparsity
+            \item low rank
+        \end{itemize}
+        \item How to find a proper amount of shrinkage?
+        \begin{itemize}
+            \item grid search
+            \item model comparison criterion
+            \begin{itemize}
+                \item What is a good criterion to use?
+                \item There are contradictions between different criteria.
+            \end{itemize}
+        \end{itemize}
+        \begin{itemize}
+            \item \textbf{Problems} with cross-validation:
+            \begin{enumerate}
+                \item Fixing the parameter across all folds $\Rightarrow$ inconsistency issue
+                \item Choose $K$ for $K$-fold cross validation.
+            \end{enumerate}
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\subfile{sec2}
+
+\end{document}

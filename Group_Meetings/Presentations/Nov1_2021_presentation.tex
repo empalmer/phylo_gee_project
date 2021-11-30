@@ -1,0 +1,329 @@
+\documentclass{beamer}
+
+\mode<presentation>{
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+\usepackage{bm}
+\usepackage{amsmath, amsthm, amsfonts}
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+\title[]{Research Project Updates}
+% \title[Phylogenetic GEEs]{Phylogenetic difference inspired GEE Correlation structure}  % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Emily Palmer} % Your name
+\institute[OSU] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+Oregon State University \\ % Your institution for the title page
+\medskip
+\textit{palmerem@oregonstate.edu} % Your email address
+}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Goals for this presentation}
+\begin{itemize}
+  \item Introduce current project
+  \item Get feedback on approach.
+  \item Broad research question: Using GEEs, how can we specify a reasonable mean and variance function and working correlation matrix to model microbiome data
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Ideas from Masters Project}
+For my masters project I used the MLTC model using Generalized Estimating Equations (GEEs) for longitudinal data assumed to be taxonomically correlated
+\begin{itemize}
+  \item Assume that observations that share the same taxonomic group (at some level) have the same correlation based on the taxonomic tree. Combine with any distinct correlations from longitudinal measures.
+  \item Global test for association between response (OTU counts/proportions) and  covariates (eg disease status).
+  \item Two part model modeling presence/absence and log-transformed abundance separately
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Issues with previous model - Moving forward}
+  \begin{itemize}
+    \item Previous method is computationally infeasible
+    \item Challenge of picking what taxa level to aggregate to: tradeoff of how many models to run/interpretability - arbitrary
+    %TODO explain problems with interpretations better
+    \item Compositionally is not considered - interpretations challenging
+    \item Used taxonomy instead of phylogeny instead of - taxonomy may be too coarse
+    \item The correlation matrix may not be positive semi-definite
+  \end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{GEE Framework}
+\begin{itemize}
+  \item Consider $i = 1, \ldots , n$ samples/individuals, each with $j = 1, \ldots , p$ OTU/taxa observations. The response vector for the $i$th subject is $\mathbf{Y}_i = (Y_{i1}, \ldots, Y_{ip})^T$. Denote $E(Y_{ij}) = \mu_{ij}$
+  \item The collection of observations for a sample make up a cluster. Responses within a cluster are not independent, responses between clusters are independent.
+  \item Consider covariates $\mathbf{X}_i = (X_{i1}, \ldots, X_{iq})$ for each sample. Usually covariates have the same value for all $p$ OTU observations in the $i$th subject.
+  \item Use a link function between the covariates and mean response as $g(\mu_{ij}) = x_{ij}^T \beta$
+  \item Variance is a function of the mean. $\text{Var}(Y_{ij}) = \phi a(\mu_{ij})$
+\end{itemize}
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{GEE Equations}
+
+\begin{itemize}
+  \item $\beta$ is the solution to
+
+  $$\sum_{i=1}^n \left(\frac{\partial  \boldsymbol\mu_i}{\partial \boldsymbol\beta  }\right)^T  \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol\mu_i) = 0 $$
+  \item Where $\mathbf{V}_i = \mathbf{A}_i^{1/2}\mathbf{R}\mathbf{A}_i^{1/2}$
+  \item   $A_i$ is a diagonal matrix whose entries are the variances
+  \item $R$ is the \textbf{working correlation matrix}
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{GEE Algorithm}
+% FINISH TODO finish GEE algorithm
+Initialize $\beta,\phi, R$
+\begin{itemize}
+  \item Update $\mu$, $e_{ik}$, $\phi$ based on current values of $\beta$
+  \item Update $R$, $R^{-1}$ using $\phi$, $e_{ik}$
+  \item Update $\beta$ iteratively using estimating equations and current values of $R, \mu, \phi, e_{ik}$
+\end{itemize}
+Repeat until convergence
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{What to modify}
+\begin{itemize}
+  \item How to specify the working correlation matrix?
+  \item What leads to a lack of independence?
+  \begin{itemize}
+    \item Phylogenetic correlation?
+    \item Compositionality
+    \item (Longitudinal repeated measures - incorporate eventually)
+  \end{itemize}
+  \item What mean and variance function to use?
+  \begin{itemize}
+    \item Previously a two-part model - binomial + log transformed gaussian
+    \item Now - Dirichlet
+  \end{itemize}
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Evolutionary trait model}
+\begin{itemize}
+  \item We borrow the idea of the evolutionary trait model (Martins and Hansen 1997) used in Microbiome data models (Xiao et al 2018)
+  \item From a phylogenetic tree, create matrix $\mathbf{D}$ where $d_{ij}$ is the distance between OTU $i$ and $j$
+  \item Use patristic distance - length of the shortest path
+  \item Correlation between OTU $j$ and $k$ is
+  $$Cor(Y_{ij}, Y_{ik}) = C_{jk}(\rho) = e^{-2\rho d_{jk}}$$ Where $\rho \in (0,\infty)$ and needs to be estimated.
+If $\rho$ is small, $C_{jk}$ is close to 1 indicating high correlation. If $\rho$ is large, indicates no correlation.
+  \item Interpretation of $\rho$: depth of the phylogenetic tree where groups are formed.
+   % Hopefully some biological interpretation here?
+
+  % Correlation matrix is positive definite.
+
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Potential issues}
+
+\begin{itemize}
+  \item Imposes a positive correlation requirement
+  \item Assumes all OTUs that have the same distance are correlated the same
+  \item Does not address compositionally
+\end{itemize}
+
+How to fix?
+
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Add a sign term}
+
+\begin{itemize}
+  \item One potential fix is to add a sign term to allow for negative correlations
+  \item Now let
+  $$\text{Corr}(Y_{ij},Y_{ik}) = c_{ij}e^{-2\rho d_{ij}}$$
+  where $c_{ij} \in \{-1,1\}$
+
+  \item How to set $c_{ij}$?
+
+
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Parameter estimation for $\rho$ and $c_{ij}$}
+\begin{itemize}
+  \item In the GEE algorithm, each iteration has a step to estimate $R$ equivalent to estimating $\rho$ and $c_{ij}$ using the current value of $\boldsymbol\beta$ in the iteration.
+
+  \item One approach is to use OLS to find $\rho$ such that $\log e_{ij}e_{ik} = -2\rho d_{jk}$, where $e_{ij}$ is the Pearson residual. However, $e_{ij}$ can be negative. Instead take the absolute value: $\log |e_{ij}e_{ik}| = -2\rho d_{jk}$
+
+  \item Another approach is to use the residuals from all subjects.
+
+  $$\left| \frac{1}{n} \sum_{i=1}^{n} e_{ij}e_{ik} \right| = e^{-2\rho d_{jk}}$$
+
+  \item Let $c_{jk} = \text{sign}\left(\sum_{i=1}^n e_{ij}e_{ik}\right)$
+
+  \item Need to use constrained optimization to ensure that $\rho > 0$.
+
+  % \item Is the estimation of $c_{ij}$ stable across iterations?
+\end{itemize}
+
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
+% Can we still have phylogenetic tree? with metagenomic data
+% Called OTUs? Asvs? Species?
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Mean and variance function }
+\begin{itemize}
+  \item If the responses are proportions, we use the same mean and variance function as those from the Dirichlet$(\alpha_1, \ldots, \alpha_p)$ distribution
+   $$\mu_{ij} = E(Y_{ij}) = \frac{\alpha_{ij}}{\alpha_{i0}}$$
+  Where $\sum_{j=1}^p \alpha_{ij} = \alpha_{i0}$
+
+  $$V(Y_{ij}) = a(\mu_{ij}) = \frac{\alpha_{ij}(\alpha_{i0} - \alpha_{ij})}{\alpha_{i0}^2(\alpha_{i0}+1)}$$
+  % \item Dirichlet random variables have covariance:
+  % $$Cov(Y_{ij},Y_{ik}) = - \frac{\alpha_j\alpha_k}{\alpha_0^2(\alpha_0 + 1)}$$
+  \item Using the Dirichlet distribution we account for $\sum_{j=1}^p Y_{ij}= 1$
+  \item Link using
+  $$\log \alpha_{i} = X_i\beta$$
+  % \item Are these alphas different for different samples? Or the same?
+
+
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Correlation idea from Dirichlet distribution}
+
+Dirichlet random variables have a correlation that describes dependence from the constant sum constraint of the components of the cluster.
+
+$$Corr(Y_{ij},Y_{ik})_{\text{Dir}} = - \frac{\alpha_{ij}\alpha_{ik}}{\alpha_{i0}^2(\alpha_{i0} + 1)}\frac{1}{\sqrt{V(Y_{ij})V(Y_{ik})}}$$
+
+This will be negative.
+
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Compositional and Phylogenetic Correlations}
+\begin{itemize}
+  \item Model the correlations as a mixture of the phylogenetic correlation and compositional correlation. We will combine this covariance that arises from the Dirichlet distribution for compositional dependence.
+  \item
+  $$R = \omega R_{ETM} + (1 - \omega) R_{Dir}$$
+  % \item This gives a mixture of a correlation that is required positive and a correlation that is required negative.
+  Where $\omega \in [0,1]$
+  \item Interpretation if compositionality or phylogenetic structure is the leading cause of correlation between responses.
+  \item Is the sign term $c_{jk}$ still needed?
+  \item We now also need to estimate $\omega$
+  % This should be positive semidefinite because the sum is.
+  % is this guaranteed to be a correlation matrix??
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Real data}
+\begin{itemize}
+  \item iHMP-IBD data
+  \item Does metagenomic data generate a phylogenetic tree?
+  \item Explore the data to see if this is a reasonable approach to model.
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
+\begin{frame}
+\Huge{\centerline{Thank you!}}
+% TODO include references
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
