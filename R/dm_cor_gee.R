@@ -4,22 +4,15 @@
 # X should be dimension n*q
 # id should be dimension n*p
 
-#dm_cor_gee <- function(formula, data, id){
+
 dm_cor_gee <- function(Y, X, id, distance_matrix){
   require(tidyverse)
   require(Matrix)
-
   
   # For dirichlet distribution use log link (g(mu))
   # Save inverse link function 
   link_fun <- function(x){log(x)}
   inv_link_fun <- function(x){exp(x)}
-  
-  
-  # Save formula and data in correct format
-  # old version
-  # model_data <- model.frame(formula, data, na.action=na.pass)
-  # id <- dplyr::pull(data, !!enquo(id))
   
   # Set up indeces 
   # Number of subjects i = 1,...,n
@@ -42,15 +35,11 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   Ip <- diag(p)
   # kronecker product with the pxp identity matrix
   # Assume there is an intercept column.
-  # X_no_intercept <- kronecker(X_compact[,-1], Ip)
   X_no_intercept <- kronecker(X, Ip)
   intercept <- rep(1,n*p)
   X <- cbind(intercept, X_no_intercept)
   # soo big already??
   
-  # Y <- model.response(model_data)
-  # Set up functions for dirichlet distribution
-  dirichlet <- brms::dirichlet()
   
   # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
   beta_index <- c("intercept", paste0("otu",rep(1:p, each = q),",cov",rep(1:q,p)))
@@ -73,7 +62,7 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     count <- count + 1
     
     # eta is g(mu) = g(alpha) the link between mean response and covariates
-    # eta = log(alpha/(1-alpha))
+    # eta = log(alpha)
     eta <- as.vector(X %*% beta)
     # Use the dirichlet link function that links mu to eta. (links alpha to beta)
     #alpha is equivalent to mu in prev notation
@@ -105,11 +94,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     d_ijk <- rep(d_jk,n)
     d2_ijk <- 2*d_ijk
 
-    # test <- data.frame(resid,id) %>% 
-    #   group_split() %>% 
-    #   map(~.x$resid%*% t(.x$resid)) %>% 
-    #   map(~.x[upper.tri(.x)])
-    # View(test[[1]])
     #initialize mult_e column
     resids <- list()
     for(i in 1:n){
@@ -119,22 +103,11 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
         pull(resid)
       # matrix of e_ij*e_ik
       resids[[i]] <- resid_i %*% t(resid_i)
-      # mult_e <- c(mult_e,resid_mat[upper.tri(resid_mat)])
     }
     resids_sparse <- bdiag(resids)
     flat_resids <- resids_sparse[upper.tri(resids_sparse)]
     flat_resids <- flat_resids[flat_resids != 0]
     
-    # combos <- expand_grid(j = 1:p, k = 1:p)
-    # indeces <- map_dfr(1:n, ~cbind(.x*combos,combos))
-    # colnames(indeces) <- c("jn","kn","j","k")
-    # 
-    # big_resid_mat <- resid %*% t(resid)
-    # 
-    # mult_e <- big_resid_mat[indeces$jn, indeces$kn]
-    # cor_dir <- cor_dirichlet[indeces$jn, indeces$kn]
-     
-
     nls_data_frame <- data.frame(y = flat_resids,
                                  r = flat_cor_dir,
                                  d = d_ijk)  
@@ -229,9 +202,7 @@ get_dirichlet_cor <- function(alpha,n,p){
     cor_i <- cross/(denom *V_denom)
     cor_list[[i]] <- cor_i
   }
-  # combine into block matrix
-  # cor_mat <- bdiag(cor_list)
-  # diag(cor_mat) <- 1
+
   return(cor_list)
 }
 
