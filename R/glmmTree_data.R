@@ -59,9 +59,9 @@ mb_data <- cbind(X = y.tr[1:50],
 
 
 
-Y_data <- mb_data$Y
-id <- mb_data$sampleID
-X_data <- y.tr[1:50]
+Y_data_small <- mb_data$Y
+id_small <- mb_data$sampleID
+X_data_small <- y.tr[1:50]
 
 # Test existing geem model using independence cor structure. 
 # geem_ind_mb <- geem(formula = Y ~ X, id = sampleID,
@@ -84,6 +84,13 @@ mb_data_full <- cbind(X = y.tr[1:50],
   separate(OTU_ID,3, into = c("chr","OTU_ID")) %>% 
   mutate(OTU_ID = as.integer(OTU_ID))
 
-# Dont want to pre-transform 
+# All samples, but using 99% prevalence. 
+Y_data_all_samples <- mb_data_full$Y
+id_all_samples <- mb_data_full$sampleID
+X_data_full_all_samples <- y.tr
 
+
+# Dont want to pre-transform ?
+
+# Do a less strict filter - maybe 30%?
 

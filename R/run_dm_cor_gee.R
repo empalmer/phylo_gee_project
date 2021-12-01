@@ -6,9 +6,18 @@ source('~/Desktop/ResearchFall2021/R/glmmTree_data.R')
 
 
 # default <- options()
-options(error = recover)
-options(default)
+# options(error = recover)
+# options(default)
 
-dm_cor_gee(Y = Y_data,X =  X_data, id = id, 
+
+# try on smaller dataset with 50 samples 
+dm_cor_gee(Y = Y_data_small,X =  X_data_small, id = id_small, 
            distance_matrix = D_filtered)
-# dm_cor_gee(formula = Y ~ X, data = mb_data, id = sampleID)
+
+
+# Try on dataset with all samples but strongly filtered OTUs: 
+dm_cor_gee(Y = Y_data_all_samples,X =  X_data_all_samples,
+           id = id_all_samples, distance_matrix = D)
+
+# Try on dataset with all samples and less filtered OTUs: 
+
