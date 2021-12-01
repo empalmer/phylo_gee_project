@@ -87,7 +87,7 @@ mb_data_full <- cbind(X = y.tr[1:50],
 # All samples, but using 99% prevalence. 
 Y_data_all_samples <- mb_data_full$Y
 id_all_samples <- mb_data_full$sampleID
-X_data_full_all_samples <- y.tr
+X_data_all_samples <- y.tr
 
 
 # Dont want to pre-transform ?

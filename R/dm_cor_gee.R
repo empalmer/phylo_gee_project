@@ -47,7 +47,9 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   
   
   # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
-  beta_index <- c("intercept", paste0("otu",rep(1:p, each = q),",cov",rep(1:q,p)))
+  # Just a helper index title to keep track 
+  beta_index <- c("intercept", paste0("otu",rep(1:p, each = q),
+                                      ",cov",rep(1:q,p)))
   beta <- rep(0, p*q + 1)
   # The Dirichlet link function is the log
    beta[1] <- link_fun(mean(Y))
@@ -61,11 +63,21 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   
   # Is there an overdispersion parameter phi for dirichlet distribution? - zhao paper seems like it does? 
   
+  
+  
+  # Set up storage to keep track of parameter values in each iteration 
+  eta_list <- list()
+  alpha_list <- list()
+  omega_list <- list()
+  rho_list <- list()
+  beta_list <- list()
+  
+  
   # Main fisher scoring loop
   count <- 0
   while(count < 30){
     count <- count + 1
-    
+    print(paste0("Iteration: ", count))
     # eta is g(mu) = g(alpha) the link between mean response and covariates
     # eta = log(alpha)
     eta <- as.vector(X %*% beta)
@@ -148,6 +160,7 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     
     beta.new <- beta
     for(i in 1:10){
+      print(paste0("Beta iteration ", i))
       eta <- as.vector(X%*%beta.new) 
       alpha <- inv_link_fun(eta) #mu <- InvLink(eta)
       diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
@@ -164,7 +177,19 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
       beta.new <- beta.new + as.vector(update)
 
     }
+    eta_list[[count]] <- eta
+    alpha_list[[count]] <- alpha
+    omega_list[[count]] <- omega
+    rho_list[[count]] <- rho
+    beta_list[[count]] <- beta
+    
   }
+  return(list(etas = list(eta_list), 
+              alphas = list(alpha_list), 
+              omegas = omega_list, 
+              rhos = rho_list, 
+              betas = list(beta_list), 
+              num_iter = count))
 }
 
 
@@ -222,7 +247,7 @@ get_dirichlet_cor <- function(alpha,n,p){
     denom <- -alpha0^2*(alpha0 + 1)
     
     v_i <- data.frame(v,id_c) %>% 
-      filter(id == i) %>% 
+      filter(id_c == i) %>% 
       pull(v)
     V_prod <- v_i %*% t(v_i)
     V_denom <- sqrt(V_prod)
