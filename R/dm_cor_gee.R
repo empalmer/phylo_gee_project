@@ -12,8 +12,14 @@ source('~/Desktop/ResearchFall2021/R/glmmTree_data.R')
 dm_cor_gee <- function(Y, X, id, distance_matrix){
   require(tidyverse)
   require(Matrix)
-  require(brms) # For Dirichlet helper functions
-  browser()
+
+  
+  # For dirichlet distribution use log link (g(mu))
+  # Save inverse link function 
+  link_fun <- function(x){log(x)}
+  inv_link_fun <- function(x){exp(x)}
+  
+  
   # Save formula and data in correct format
   # old version
   # model_data <- model.frame(formula, data, na.action=na.pass)
@@ -53,8 +59,8 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
   beta_index <- c("intercept", paste0("otu",rep(1:p, each = q),",cov",rep(1:q,p)))
   beta <- rep(0, p*q + 1)
-  # The dirichlet mean function is the logit. 
-  beta[1] <- dirichlet$linkfun(mean(Y))
+  # The Dirichlet link function is the log
+   beta[1] <- link_fun(mean(Y))
   
   # Initialize the A matrix which is a diagonal matrix of the inverse of the square root of the variance
   # Here it is (nxp)x(nxp) 
@@ -76,7 +82,7 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     # Use the dirichlet link function that links mu to eta. (links alpha to beta)
     #alpha is equivalent to mu in prev notation
     # (Include code of what the function link is)
-    alpha <- dirichlet$linkinv(eta)
+    alpha <- inv_link_fun(eta)
 
     # Calculate variance from values of alpha 
     # since variance is function of alpha 
@@ -91,7 +97,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     phi <- crossprod(resid,resid)*(1/(n-q))
     
     # Get dirichlet correlation part
-    
     cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
     cor_dirichlet <- bdiag(cor_dirichlet_list)
     diag(cor_dirichlet) <- 1
@@ -170,10 +175,11 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     beta.new <- beta
     for(i in 1:10){
       eta <- as.vector(X%*%beta.new) 
-      alpha <- dirichlet$linkinv(eta) #mu <- InvLink(eta)
+      alpha <- inv_link_fun(eta) #mu <- InvLink(eta)
       diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
       # derivative inverse link
-      diag(dg_inv_d_eta) <- exp(eta)/(1 + exp(eta))^2
+      # for dirichlet distribution the derivative of exp(x) is exp(x)
+      diag(dg_inv_d_eta) <- exp(eta)
       
       
       hess <- crossprod(A %*% dg_inv_d_eta %*% X,
@@ -184,11 +190,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
       beta.new <- beta.new + as.vector(update)
 
     }
-    
-    
-    
-    
-    
   }
 }
 
