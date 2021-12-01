@@ -31,7 +31,7 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   # Not yet in the correct format for GEE 
   # X_compact <- model.matrix(formula,model_data)
   # Number of covariates: k = 1,...,q
-  # minus one to accoutn for intercept
+  # minus one to accouting for intercept
   # TODO change when q > 1
   # q <- dim(X)[2] 
   q <- 1
@@ -191,15 +191,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     
   }
 }
-
-
-# default <- options()
-options(error = recover)
-options(default)
-
-dm_cor_gee(Y = Y_data,X =  X_data, id = id, 
-           distance_matrix = D_filtered)
-# dm_cor_gee(formula = Y ~ X, data = mb_data, id = sampleID)
 
 
 # alphas is a vector of n*p alpha values 

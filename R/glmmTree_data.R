@@ -1,6 +1,8 @@
 ## Microbiome dataset (from glmmtree)
 library(tidyverse)
-load("data1.rda")
+load("Data/data1.rda")
+# This data is simulated 
+
 # This has several included objects 
 # z.tr: 778 OTU proportions for 100 samples in training set
 # y.tr: Continous outcome for 100 samples in training set
@@ -9,7 +11,9 @@ load("data1.rda")
 # D: Patristic distance matrix among 778 OTUs
 
 # Use the train data 
+# Their z is our Y 
 mb_data_otu <- z.tr
+# Their Y is our X
 mb_data_sample <- data.frame(id = 1:200,y = y.tr)
 
 
@@ -20,7 +24,7 @@ sam <- sample_data(mb_data_sample)
 ps <- phyloseq(otu,sam)
 ps
 
-
+# Helper function for prevalence filtering 
 filterTaxaByPrevalence <- function(ps, percentSamplesPresentIn){
   #define threshold
   prevalenceThreshold <- percentSamplesPresentIn * phyloseq::nsamples(ps)
@@ -64,14 +68,13 @@ X_data <- y.tr[1:50]
 #                     data = mb_data) 
 # geem_ind_mb
 
-
+# Corresponding Distance matrix on filtered data 
 D_filtered <- D[taxa_names(psf),taxa_names(psf)]
 
 
 
 
-# and full samples. 
-
+# Proper format for the entire dataset 
 mb_data_otu_full <- otu_table(psf_99)
 colnames(mb_data_otu_full) <- paste0("OTU",1:ntaxa(psf_99))
 mb_data_full <- cbind(X = y.tr[1:50],
@@ -82,4 +85,5 @@ mb_data_full <- cbind(X = y.tr[1:50],
   mutate(OTU_ID = as.integer(OTU_ID))
 
 # Dont want to pre-transform 
+
 
