@@ -1,10 +1,15 @@
-
-# switch and pass in Y and X separetly. 
-# Y should be dimension n*p
-# X should be dimension n*q
-# id should be dimension n*p
-
-
+#' Phylogeny-aware Dirichlet GEE 
+#' 
+#' 
+#' @param Y should be of length n*p
+#' @param X should be dimension n*q
+#' @param id should be of length n*p
+#' @param distance_matrix 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 dm_cor_gee <- function(Y, X, id, distance_matrix){
   require(tidyverse)
   require(Matrix)
@@ -163,9 +168,17 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
 }
 
 
-# alphas is a vector of n*p alpha values 
-# id is a n*p vector of what sample each alpha is
-# returns the matrix of variances for all 
+
+#' Function for calculating Dirichlet variance 
+#'
+#' @param alpha a vector of n*p alpha values 
+#' @param n a n*p vector of what sample each alpha is
+#' @param p 
+#'
+#' @return Matrix of variances for each sample+ASV
+#' @export
+#'
+#' @examples
 var_dirichlet <- function(alpha,n,p){
   # TODO fix when allow unequal cluster size
   id <- rep(1:n, each = p)
@@ -178,6 +191,21 @@ var_dirichlet <- function(alpha,n,p){
 }
 
 
+
+
+
+#' Calculate the formula for Dirichlet correlation
+#' 
+#' Mostly used as a helper function 
+#'
+#' @param alpha 
+#' @param n 
+#' @param p 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_dirichlet_cor <- function(alpha,n,p){
   id_c <- rep(1:n, each = p)
   v <- var_dirichlet(alpha,n,p)
