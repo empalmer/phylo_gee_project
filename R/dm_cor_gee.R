@@ -71,11 +71,13 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   omega_list <- list()
   rho_list <- list()
   beta_list <- list()
+  beta_diffs <- list()
   
   
   # Main fisher scoring loop
   count <- 0
   while(count < 30){
+    browser()
     count <- count + 1
     print(paste0("Iteration: ", count))
     # eta is g(mu) = g(alpha) the link between mean response and covariates
@@ -159,8 +161,10 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     # limit convergence steps for speedier algorithm? 
     
     beta.new <- beta
+    diffs <- numeric(10)
     for(i in 1:10){
       print(paste0("Beta iteration ", i))
+      beta.old <- beta.new
       eta <- as.vector(X%*%beta.new) 
       alpha <- inv_link_fun(eta) #mu <- InvLink(eta)
       diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
@@ -175,20 +179,22 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
                          R_inv_block %*% A %*% as.matrix(Y - alpha))
       update <- solve(hess, esteq)
       beta.new <- beta.new + as.vector(update)
-
+      diffs[i] <- distance(beta.new,beta.old)
     }
+    
     eta_list[[count]] <- eta
     alpha_list[[count]] <- alpha
     omega_list[[count]] <- omega
     rho_list[[count]] <- rho
     beta_list[[count]] <- beta
-    
+    beta_diffs[[count]] <- diffs
   }
   return(list(etas = list(eta_list), 
               alphas = list(alpha_list), 
               omegas = omega_list, 
               rhos = rho_list, 
               betas = list(beta_list), 
+              beta_convergences = beta_diffs,
               num_iter = count))
 }
 

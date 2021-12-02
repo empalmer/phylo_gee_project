@@ -1,6 +1,6 @@
 
 # Can load practice data from https://github.com/lichen-lab/glmmTree in file glmmTree_data.R
-source(here::here("R","glmmTree_data.R"))
+source(here::here("R","glmmTree_sim_data.R"))
 # Filtered to have 50 samples and 48 OTUs so computation goes quickly 
 
 
@@ -24,5 +24,11 @@ source(here::here("R","dm_cor_gee.R"))
 all_samples_test <- dm_cor_gee(Y = Y_data_all_samples,X =  X_data_all_samples,
            id = id_all_samples, distance_matrix = D_filtered)
 
+
+
 # Try on dataset with all samples and less filtered OTUs: 
+# use 45% prevalence which gives 193 ASVs and 100 samples
+source(here::here("R","dm_cor_gee.R"))
+all_samples_test <- dm_cor_gee(Y = Y_data_45_all,X =  X_data_45_all,
+                               id = id_45_all, distance_matrix = D_filtered_45)
 

@@ -92,5 +92,23 @@ X_data_all_samples <- y.tr
 
 # Dont want to pre-transform ?
 
-# Do a less strict filter - maybe 30%?
+# Do a less strict filter - maybe 45%?
+# Gives 192 taxa 
+psf_45 <- filterTaxaByPrevalence(ps, .45)
+psf_45
 
+
+mb_data_otu_45 <- otu_table(psf_45)
+colnames(mb_data_otu_45) <- paste0("OTU",1:ntaxa(psf_45))
+mb_data_45 <- cbind(X = y.tr[1:50],
+                 sampleID = 1:phyloseq::nsamples(psf_45),
+                 data.frame(mb_data_otu_45)) %>% 
+  pivot_longer(-c(X,sampleID), names_to = "OTU_ID", values_to = "Y") %>% 
+  separate(OTU_ID,3, into = c("chr","OTU_ID")) %>% 
+  mutate(OTU_ID = as.integer(OTU_ID))
+
+
+Y_data_45_all <- mb_data_45$Y
+id_45_all <- mb_data_45$sampleID
+X_data_45_all <- y.tr
+D_filtered_45 <- D[taxa_names(psf_45),taxa_names(psf_45)]
