@@ -19,3 +19,4 @@ otu.name <- data.obj$otu.name
 # Size factor? Looks like data were normalized using TSS 
 # So this would be the total count in each sample. 
 size.fator <- data.obj$size.factor
+

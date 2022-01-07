@@ -38,6 +38,8 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   
   # Start setting up the design matrix for GEE
   Ip <- diag(p)
+  # For use in the beta loop
+  Ip_n <- bdiag(rep(list(Ip),n))
   # kronecker product with the pxp identity matrix
   # Assume there is an intercept column.
   X_no_intercept <- kronecker(X, Ip)
@@ -59,11 +61,18 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   # This is using the Matrix package diagonal function...
   A <- Diagonal(n*p)
   
-  dg_inv_d_eta <- Diagonal(n*p)
+  # Is this the dimension when there are more covariates? 
+  # TODO fix
+  partials <- Matrix(nrow = n*p, ncol = n*p)
+  # dg_inv_d_eta <- Diagonal(n*p)
   
   # Is there an overdispersion parameter phi for dirichlet distribution? - zhao paper seems like it does? 
   
-  
+  # get 
+  d_jk <- distance_matrix[upper.tri(distance_matrix)]
+  # Since d_jk doesnt have an i index we need to repeat it for each sample
+  d_ijk <- rep(d_jk,n)
+  d2_ijk <- 2*d_ijk
   
   # Set up storage to keep track of parameter values in each iteration 
   eta_list <- list()
@@ -77,7 +86,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
   # Main fisher scoring loop
   count <- 0
   while(count < 30){
-    browser()
     count <- count + 1
     print(paste0("Iteration: ", count))
     # eta is g(mu) = g(alpha) the link between mean response and covariates
@@ -107,12 +115,6 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     flat_cor_dir <- cor_dirichlet[upper.tri(cor_dirichlet)]
     flat_cor_dir <- flat_cor_dir[flat_cor_dir != 0]
     
-    # get 
-    d_jk <- distance_matrix[upper.tri(distance_matrix)]
-    # Since d_jk doesnt have an i index we need to repeat it for each sample
-    d_ijk <- rep(d_jk,n)
-    d2_ijk <- 2*d_ijk
-
     #initialize mult_e column
     resids <- list()
     for(i in 1:n){
@@ -154,32 +156,57 @@ dm_cor_gee <- function(Y, X, id, distance_matrix){
     R_invs <- map(Rs, solve)
     
     
-    R_inv_block <- bdiag(R_invs)
+    R_inv <- bdiag(R_invs)
     
     
     # Step for updating beta 
-    # limit convergence steps for speedier algorithm? 
+    # TODO limit convergence steps for speedier algorithm? 
     
     beta.new <- beta
     diffs <- numeric(10)
+    browser()
     for(i in 1:10){
       print(paste0("Beta iteration ", i))
       beta.old <- beta.new
       eta <- as.vector(X%*%beta.new) 
-      alpha <- inv_link_fun(eta) #mu <- InvLink(eta)
+      alpha <- inv_link_fun(eta) 
+      mu <- 0 # FIXME 
+      alpha0 <- colSums(matrix(alpha, nrow = p))
       diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
+      X <- X[,-1]
+      # Make the partials for each block.
+      partial_list <- list()
+      for(k in 1:n){
+        alphai0 <- alpha0[k]
+        Xi <- X[((k-1)*p + 1):((k*p)),]
+        alphai <- alpha[((k-1)*p + 1):(k*p)]
+        
+        partial_i <- 1/(alphai0^2) * (alphai0*Xi%*%diag(alphai) - Xi %*%alphai %*% t(alphai))
+      }
+      # partials <- 1/(alpha0^2) * ( alpha0*t(X) %*% alpha %*% Ip_n - 
+                                     # alpha %*% Ip_n %*% t(X) %*% alpha)
+      
+      
+      
+      # now no longer a diagonal matrix. 
       # derivative inverse link
       # for dirichlet distribution the derivative of exp(x) is exp(x)
-      diag(dg_inv_d_eta) <- exp(eta)
+      # diag(dg_inv_d_eta) <- exp(eta)
       
       
-      hess <- crossprod(A %*% dg_inv_d_eta %*% X,
-                        R_inv_block %*% A %*% dg_inv_d_eta %*% X)
-      esteq <- crossprod(A %*% dg_inv_d_eta %*% X,
-                         R_inv_block %*% A %*% as.matrix(Y - alpha))
+      # not sure why crossprod is used here - hides the transposes 
+      # maybe faster - yes? 
+      # A = A^{-1/2}, simplified for notation here 
+      hess <- crossprod(A %*% partials %*% X,
+                         R_inv %*% A %*% partials %*% X)
+      # FIXME needs to be y - mu! 
+      esteq <- crossprod(A %*% partials %*% X,
+                          R_inv %*% A %*% as.matrix(Y - alpha))
+      
       update <- solve(hess, esteq)
       beta.new <- beta.new + as.vector(update)
-      diffs[i] <- distance(beta.new,beta.old)
+      diffs[i] <- sum((beta.new - beta.old)^2)
+      
     }
     
     eta_list[[count]] <- eta

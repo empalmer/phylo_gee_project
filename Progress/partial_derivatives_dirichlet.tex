@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+
+
+ASV proportions response $\mathbf{y}_i = (y_{i1}, \ldots , y_{ij}, \ldots ,  y_{ip})^T \sim \text{Dirichlet}(\alpha_{i1}, \ldots , \alpha_{ip})$
+
+
+$$E(y_{ij}) = \mu_{ij} = \frac{\alpha_{ij}}{\alpha_{i1}}$$
+where $\alpha_{i0} = \sum_{j = 1}^p \alpha_{i0}$.
+
+Link covarites to $\alpha$'s:
+$$\log(\alpha_{ij}) = \mathbf{x_i}^T\boldsymbol\beta_j$$
+and
+$$\alpha_{ij} = e^{\mathbf{x_i}^T\boldsymbol\beta_j}$$
+
+where $\boldsymbol\beta_j = (\beta_{1}, \ldots ,\beta_{q})$ depending on the number of covariates in the model.
+
+Then the GEE equations are
+
+\begin{align*}
+  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^T\mathbf{V}_i^{-1}(\mathbf{Y_i} - \boldsymbol\alpha_i) = 0
+\end{align*}
+
+Where $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$
+
+Then,
+
+\begin{align*}
+  \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta} &= \frac{\partial  }{\partial \boldsymbol \beta} \frac{\boldsymbol\alpha_{i}}{\alpha_{i0}}\\
+  &= \frac{\partial  }{\partial \boldsymbol \beta } \frac{e^{\mathbf{x_i}^T \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x_i}^T \boldsymbol\beta_j}}\\
+  &= \begin{pmatrix}
+        \frac{\partial }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x_i}^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}\\
+        \vdots & \ddots & \vdots \\
+        \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}
+  \end{pmatrix}\\
+  &= \frac{1}{\left(\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j} \right)^2} \begin{pmatrix}
+\mathbf{x}_i \alpha_{i1} \alpha_{i0} - \mathbf{x}_i\alpha_{i1}\alpha_{i1} & \cdots & - \mathbf{x}_i\alpha_{i1}\alpha_{ip}\\
+- \mathbf{x}_i\alpha_{i1}\alpha_{i2} & \mathbf{x}_i \alpha_{i0}\alpha_{i2} - \mathbf{x}_i\alpha_{i2}\alpha_{i2} & \cdots \\
+\vdots & \ddots & \vdots\\
+- \mathbf{x}_i \alpha_{i1}\alpha_{ip} & \cdots & \mathbf{x}_i\alpha_{ip}\alpha_{i0} - \mathbf{x}_i \alpha_{ip}\alpha_{ip}
+  \end{pmatrix}\\
+  &= \frac{1}{\alpha_{i0}^2} \left(\alpha_{i0} \mathbf{x}_i \text{diag}(\boldsymbol\alpha_i) - \mathbf{x}_i \boldsymbol\alpha_i^T \boldsymbol\alpha_i \right)
+\end{align*}
+
+
+
+
+
+\end{document}

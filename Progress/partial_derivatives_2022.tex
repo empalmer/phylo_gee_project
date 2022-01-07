@@ -1,0 +1,93 @@
+\documentclass{article}
+\usepackage{amsmath}
+ \setlength{\parindent}{0pt}
+\begin{document}
+
+
+ASV proportions response $\mathbf{y}_i = (y_{i1}, \ldots , y_{ij}, \ldots ,  y_{ip})^T_{(np \times 1)} \sim \text{Dirichlet}(\alpha_{i1}, \ldots , \alpha_{ip})$
+
+
+$$E(y_{ij}) = \mu_{ij} = \frac{\alpha_{ij}}{\alpha_{i1}}$$
+where $\alpha_{i0} = \sum_{j = 1}^p \alpha_{i0}$.
+
+\vspace{.5em}
+Indeces:
+\begin{itemize}
+  \item Number of Samples: $i = 1, \ldots , n$.
+  \item Number of OTUs: $j = 1, \ldots , p$
+  \item Number of covariates, $k = 1, \ldots, q$
+\end{itemize}
+
+
+\vspace{.5em}
+Define the design matrix $\mathbf{X}_{np \times (pq)}$ through the measurements for each sample $\mathbf{x}_{i}$ the $p$ rows for a given sample:
+
+\begin{align*}
+  \mathbf{x}_i &= \begin{pmatrix}
+  x_{k = 1} & \cdots & x_{k = q} & 0 & \cdots & 0 & 0 & \cdots & 0 \\
+  0 & \cdots & 0 & x_{1} & \cdots & x_q & 0 & \cdots & 0 \\
+   \vdots & & &&& & \\
+   0 & \cdots & 0 & 0 & \cdots & 0 & x_1 & \cdots  & x_q
+\end{pmatrix}_{p \times pq }\\
+ \boldsymbol\beta &= \begin{pmatrix}
+ \beta_{j = 1, k = 1}\\
+ \beta_{j = 1, k = 2}\\
+ \vdots \\
+ \beta_{j = 1, k = q}\\
+ \beta_{j = 2, k = 1}\\
+ \beta_{j = 2, k = 2}\\
+ \vdots \\
+ \beta_{j = p, k = 1}\\
+ \vdots
+\end{pmatrix}_{pq \times 1}
+\end{align*}
+
+
+
+For notation, consider $\mathbf{x}_{ij}$ to denote the $j$th row of $\mathbf{x}_i$, but note that the nonzero values of each $\mathbf{x}_{ij}$ are the same for all $j$
+
+
+Link covarites to $\alpha$'s:
+$$\log(\alpha_{ij_{1 \times 1}}) = \mathbf{x_{ij_{1 \times pq}}}\boldsymbol\beta_{pq \times 1}$$
+and
+$$\alpha_{ij} = e^{\mathbf{x_{ij}}\boldsymbol\beta}$$
+Where only the corresponding $j$ elements of $\beta$ will have corresponding non-zero elements of $\mathbf{x}_{ij}$
+
+\newpage
+
+Then the GEE equations are
+
+\begin{align*}
+  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^T\mathbf{V}_i^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i) = 0
+\end{align*}
+
+Where $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$
+
+Then,
+
+\begin{align*}
+  \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta} &= \frac{\partial  }{\partial \boldsymbol \beta} \frac{\boldsymbol\alpha_{i}}{\alpha_{i0}}\\
+  &= \frac{\partial  }{\partial \boldsymbol \beta} \frac{e^{\mathbf{x}_i \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x_{ij}}\boldsymbol\beta}}\\
+  &= \begin{pmatrix}
+        \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 1}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial}{\partial \boldsymbol\beta_{1,1}}
+        \frac{e^{\mathbf{x}_{ip} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}\\
+        \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 2}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \vdots & \vdots \\
+        \vdots & \vdots & \vdots \\
+        \frac{\partial  }{\partial \boldsymbol\beta_{j = p, k = q}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta}\frac{e^{\mathbf{x}_{ip} \boldsymbol\beta_{p,q}}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}
+  \end{pmatrix}_{np \times p}\\
+  &= \frac{1}{\left(\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta} \right)^2} \begin{pmatrix}
+x_{i1} \alpha_{i1} \alpha_{i0} - x_{iq}\alpha_{i1}\alpha_{i1} & \cdots & - x_{i1}\alpha_{i1}\alpha_{ip}\\
+\vdots & \vdots & \vdots \\
+- x_{i1}\alpha_{i1}\alpha_{i2} & x_{i2} \alpha_{i0}\alpha_{i2} - x_{i2}\alpha_{i2}\alpha_{i2} & \cdots \\
+\vdots & \ddots & \vdots\\
+- x_{i1} \alpha_{i1}\alpha_{ip} & \cdots & x_{iq}\alpha_{ip}\alpha_{i0} - x_{iq} \alpha_{ip}\alpha_{ip}\\
+\vdots & \ddots & \vdots
+  \end{pmatrix}\\
+  % &= \frac{1}{\alpha_{i0}^2} \left(\alpha_{i0} \mathbf{x}_i \text{diag}(\boldsymbol\alpha_i) - \mathbf{x}_i \boldsymbol\alpha_i^T \boldsymbol\alpha_i \right)
+\end{align*}
+
+
+
+
+
+\end{document}
