@@ -47,42 +47,87 @@ Define the design matrix $\mathbf{X}_{np \times (pq)}$ through the measurements 
 For notation, consider $\mathbf{x}_{ij}$ to denote the $j$th row of $\mathbf{x}_i$, but note that the nonzero values of each $\mathbf{x}_{ij}$ are the same for all $j$
 
 
+Alternatively, if instead we consider $\mathbf{x}_i = (x_1, \ldots , x_q)^T$, define $\boldsymbol\beta_j = (\beta_{j,k = 1}, \ldots, \beta_{j, k = q})^t$, and $\boldsymbol\beta = (\boldsymbol\beta_1^t , \ldots , \boldsymbol\beta_p^t)^t$
+
+
+
 Link covarites to $\alpha$'s:
 $$\log(\alpha_{ij_{1 \times 1}}) = \mathbf{x_{ij_{1 \times pq}}}\boldsymbol\beta_{pq \times 1}$$
 and
 $$\alpha_{ij} = e^{\mathbf{x_{ij}}\boldsymbol\beta}$$
 Where only the corresponding $j$ elements of $\beta$ will have corresponding non-zero elements of $\mathbf{x}_{ij}$
 
+If we use the alternate notation,
+
+$$\log_{\alpha_{ij}} = \mathbf{x}_i^t \boldsymbol\beta_{j}, \text{ and } \alpha_{ij} = e^{\mathbf{x}_i^t \boldsymbol\beta_j}$$
+
+
 \newpage
 
-Then the GEE equations are
+The GEE equations are
 
 \begin{align*}
-  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^T\mathbf{V}_i^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i) = 0
+  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)_{pq \times p}^t\mathbf{V}_{i_{p \times p}}^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i)_{p \times 1} = 0
 \end{align*}
 
 Where $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$
 
+
+
 Then,
 
 \begin{align*}
-  \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta} &= \frac{\partial  }{\partial \boldsymbol \beta} \frac{\boldsymbol\alpha_{i}}{\alpha_{i0}}\\
-  &= \frac{\partial  }{\partial \boldsymbol \beta} \frac{e^{\mathbf{x}_i \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x_{ij}}\boldsymbol\beta}}\\
+  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta}\right)^t &= \left(\frac{\partial  }{\partial \boldsymbol \beta} \frac{\boldsymbol\alpha_{i}}{\alpha_{i0}} \right)^t\\
+  &= \left(\frac{\partial  }{\partial \boldsymbol \beta} \frac{e^{\mathbf{x}_i \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x_{ij}}\boldsymbol\beta}} \right)^t\\
   &= \begin{pmatrix}
-        \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 1}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial}{\partial \boldsymbol\beta_{1,1}}
-        \frac{e^{\mathbf{x}_{ip} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}\\
-        \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 2}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \vdots & \vdots \\
-        \vdots & \vdots & \vdots \\
-        \frac{\partial  }{\partial \boldsymbol\beta_{j = p, k = q}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta}\frac{e^{\mathbf{x}_{ip} \boldsymbol\beta_{p,q}}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}
-  \end{pmatrix}_{np \times p}\\
-  &= \frac{1}{\left(\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta} \right)^2} \begin{pmatrix}
-x_{i1} \alpha_{i1} \alpha_{i0} - x_{iq}\alpha_{i1}\alpha_{i1} & \cdots & - x_{i1}\alpha_{i1}\alpha_{ip}\\
-\vdots & \vdots & \vdots \\
-- x_{i1}\alpha_{i1}\alpha_{i2} & x_{i2} \alpha_{i0}\alpha_{i2} - x_{i2}\alpha_{i2}\alpha_{i2} & \cdots \\
-\vdots & \ddots & \vdots\\
-- x_{i1} \alpha_{i1}\alpha_{ip} & \cdots & x_{iq}\alpha_{ip}\alpha_{i0} - x_{iq} \alpha_{ip}\alpha_{ip}\\
-\vdots & \ddots & \vdots
+        \frac{\partial }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x_i}^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}\\
+        \vdots & \ddots & \vdots \\
+        \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}
   \end{pmatrix}\\
+  &= \frac{1}{\alpha_{i0}^2} \begin{pmatrix} x_1 \alpha_1 \alpha_0 - \alpha_1 x_1 \alpha_1 & - \alpha_2 x_1 \alpha_1 & \cdots & - \alpha_p x_1 \alpha_1 \\
+x_2 \alpha_1 \alpha_0 - \alpha_1 x_2 \alpha_1 & - \alpha_2 x_2 \alpha_1 & \cdots & -\alpha_p x_2 \alpha_1 \\
+\vdots & \vdots &  \ddots & \vdots \\
+x_q\alpha_1\alpha_0 - \alpha_1 x_q\alpha_1 & - \alpha_2 x_q \alpha_1 &  \cdots  & \vdots  \\
+- \alpha_1x_1\alpha_2 & x_1 \alpha_2\alpha_0 - \alpha_2 x_2\alpha_2 &   & \\
+\vdots & \vdots & \ddots & \vdots \\
+- \alpha_1x_q\alpha_p & \cdots  & & x_q\alpha_p\alpha_0 - \alpha_px_p\alpha_p
+\end{pmatrix}_{pq \times p}\\
+&= \frac{1}{a_{i0}} \begin{pmatrix}x_1 \alpha_1 & 0 & \cdots & 0 \\
+x_2 \alpha_1 & 0 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+x_q\alpha_1 & 0 & \cdots & 0 \\
+0 & x_1 \alpha_2 & \cdots & 0 \\
+0 & x_2 \alpha_2 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & x_1 \alpha_p
+\end{pmatrix} - \frac{1}{\alpha_{i0}^2}\begin{pmatrix} \alpha_1^2 x_1 & \alpha_1\alpha_2 x_1 & \cdots & \alpha_1\alpha_p x_1 \\
+\alpha_1^2 x_2 &\alpha_1\alpha_2 x_2 & \cdots &  \alpha_1\alpha_p x_2\\
+\vdots & \vdots &\ddots & \vdots \\
+\alpha_1^2 x_q & \alpha_1\alpha_2 x_q & \cdots & \alpha_1 \alpha_p x_q\\
+\alpha_1\alpha_2x_1 & \alpha_2^2  x_1 & \cdots & \alpha_2 \alpha_p x_1 \\
+\alpha_1\alpha_2x_2 & \alpha_2^2  x_2 & \cdots & \alpha_2 \alpha_p x_2\\
+\vdots & \vdots & \ddots &\vdots \\
+\alpha_1\alpha_p x_q & \alpha_2\alpha_p x_q & \cdots & \alpha_p^2 x_q\end{pmatrix}\\
+% &= \frac{1}{\alpha_{i0}} \begin{pmatrix}\alpha_1 \mathbf{x}_i & 0 & \\
+% & \ddots & \\
+% 0 & & \alpha_p \mathbf{x}_i\end{pmatrix}_{pq \times p} - \frac{1}{\alpha_{i0}^2} \boldsymbol\alpha \boldsymbol\alpha^t \otimes \mathbf{x}_i\\
+&= \frac{1}{\alpha_{i0}}[I_p \otimes \mathbf{x}_i] diag(\boldsymbol\alpha_i) - \frac{1}{\alpha_{i0}^2} \boldsymbol\alpha_i \boldsymbol\alpha_i^t \otimes \mathbf{x}_i
+% &= \frac{1}{\alpha_{i0}^2}[\alpha_0 \boldsymbol1_p \boldsymbol\alpha \otimes \mathbf{x}_i - \boldsymbol\alpha \boldsymbol\alpha^t \otimes \mathbf{x}_i]
+%   &= \begin{pmatrix}
+%         \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 1}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial}{\partial \boldsymbol\beta_{1,1}}
+%         \frac{e^{\mathbf{x}_{ip} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}\\
+%         \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 2}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \vdots & \vdots \\
+%         \vdots & \vdots & \vdots \\
+%         \frac{\partial  }{\partial \boldsymbol\beta_{j = p, k = q}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta}\frac{e^{\mathbf{x}_{ip} \boldsymbol\beta_{p,q}}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}
+%   \end{pmatrix}_{np \times p}\\
+%   &= \frac{1}{\left(\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta} \right)^2} \begin{pmatrix}
+% x_{i1} \alpha_{i1} \alpha_{i0} - x_{iq}\alpha_{i1}\alpha_{i1} & \cdots & - x_{i1}\alpha_{i1}\alpha_{ip}\\
+% \vdots & \vdots & \vdots \\
+% - x_{i1}\alpha_{i1}\alpha_{i2} & x_{i2} \alpha_{i0}\alpha_{i2} - x_{i2}\alpha_{i2}\alpha_{i2} & \cdots \\
+% \vdots & \ddots & \vdots\\
+% - x_{i1} \alpha_{i1}\alpha_{ip} & \cdots & x_{iq}\alpha_{ip}\alpha_{i0} - x_{iq} \alpha_{ip}\alpha_{ip}\\
+% \vdots & \ddots & \vdots
+%   \end{pmatrix}\\
   % &= \frac{1}{\alpha_{i0}^2} \left(\alpha_{i0} \mathbf{x}_i \text{diag}(\boldsymbol\alpha_i) - \mathbf{x}_i \boldsymbol\alpha_i^T \boldsymbol\alpha_i \right)
 \end{align*}
 
