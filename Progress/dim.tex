@@ -1,0 +1,69 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Topic}}
+%\rhead{\textbf{Topic}}
+%\lhead{\textbf{Week}}
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+Hessian:
+
+$$X^t_{pq \times np} \Delta_{npq \times np} A^{-1/2}_{np \times np} R^{-1}_{np \times np} A^{-1/2}_{np \times np} \Delta_{npq \times np} X_{np \times pq}$$
+
+Where
+
+\begin{itemize}
+  \item $\Delta_i = \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)_{pq \times p}^t = \frac{1}{\alpha_{i0}^2}(\alpha_{i0}diag(\alpha_i) - \alpha_i\alpha_i^t) \otimes \mathbf{x}_i$
+  \item $\Delta = block diag(\Delta_i)$
+  \item $A_{{jj}_i} = 1/\sqrt{v}$, where $v$ is the variance of a Dirichlet RV for a given $\alpha_{ij}$
+  \item $A = block diag(A_i)$
+  \item $R$: working correlation matrix.
+\end{itemize}
+
+
+After Week 3 meeting:
+
+The GEE equations (gradient) (in block matrix form) are:
+
+$$\Delta V_i ^{-1} (\mathbf{Y}_i - \boldsymbol\mu_i) = \mathbf{0}$$
+
+and the hessian is
+
+
+
+
+(Because we are using fisher scoring and the expectation of $(Y_i - \mu_i) = 0$)
+
+\end{document}
