@@ -97,92 +97,27 @@ dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
   while(count < 5){
     count <- count + 1
     print(paste0("Iteration: ", count))
-
-    
-    # Update beta loop 
-    beta <- update_beta(Y, X_mat, beta, R_inv, phi, n_iter = 1)
-  
-    
-    eta <- as.vector(X %*% beta) 
-    alpha <- exp(eta) 
-    alpha0 <- colSums(matrix(alpha, nrow = p))
-    mu <-  alpha / rep(alpha0, each = p)
-    diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
-    
-    ### Now update omega, rho, 
-    # We use the residuals as the responses for the NLS regression
-    resid <- diag(A %*% Diagonal(x = Y - mu))
-    # Setup calculated residuals for nls fxn
-    # Need to "flatten" so each residual in the residual matrix 
-    # These are squared residuals 
-    cross_resids <- data.frame(id,resid) %>% 
-      group_by(id) %>% 
-      group_map(~tcrossprod(.x$resid))
-    
-    
-    cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
-
-    # resids_sparse <- as.matrix(bdiag(resids))
-    # flat_resids <- resids_sparse[upper.tri(resids_sparse)]
-    # flat_resids <- flat_resids[flat_resids != 0]
-    # Overdispersion 
-    # This is actually phi inverse? According to GEE paper
-    # sum of squared residuals 
-    phi <- as.numeric(sum(resid^2)*(1/(n-(q-1))))
-    
-    print(paste0("phi = ", phi))
     
     browser()
-    # Get dirichlet correlation part
-    cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
-    cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
     
-
-    # cor_dirichlet <- as.matrix(bdiag(cor_dirichlet_list))
-    # flat_cor_dir <- cor_dirichlet[upper.tri(cor_dirichlet)]
-    # flat_cor_dir <- flat_cor_dir[flat_cor_dir != 0]
-    
-    estimates <- nls_optim(cross_resid_vec/ phi, cor_dirichlet_vec, d_ijk)
-    
-    omega <- estimates[1]
-    rho <- estimates[2]
-
-    print(paste0("omega  = ", omega, "rho = ", rho))
-    # nls_data_frame <- data.frame(y = flat_resids/sqrt(phi),
-    # nls_data_frame <- data.frame(y = flat_resids,
-    #                              r = flat_cor_dir,
-    #                              d = d_ijk)  
-    # nls_mod <- nls(y ~ w*r + (1 - w)*exp(-2*rho*d), 
-    #                data = nls_data_frame, 
-    #                start = list(w = .5, 
-    #                             rho = 1))
-    # res_nls <- summary(nls_mod)
-    # 
-    # # save estimated omega and rho
-    # omega <- res_nls$coefficients[1,1]
-    # rho <- res_nls$coefficients[2,1]
-    # rho <- ifelse(rho < 0 , 0, rho)
-    
-    # use current values of omega and rho to create
-    # present iteration of combined working correlation matrix. 
-    
-    Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
-    
-    # invert
-    # Use Moore-Penrose generalized inverse
-    R_invs <- map(Rs, ginv)
-    #R_invs <- map(Rs, solve)
-    R_inv <- bdiag(R_invs)
+    # Update beta loop 
+    # Depends on "fixed" values of rho, omega and phi, 
+    # Which are used to make R_inv 
+    beta <- update_beta(Y, X_mat, beta, R_inv, phi, n_iter = 1)
+  
+    # Update R inverse by updating omega and rho 
+    temp_res <- update_R_phi <- function(Y, X, beta)
+    R_inv <- temp_res$R_inv
+    phi <- temp_res$phi
     
     
-    
-    
-    eta_list[[count]] <- eta
-    alpha_list[[count]] <- alpha
-    omega_list[[count]] <- omega
-    rho_list[[count]] <- rho
-    beta_list[[count]] <- beta
-    beta_diffs[[count]] <- diffs
+    # Save estimates when things start working 
+    # eta_list[[count]] <- eta
+    # alpha_list[[count]] <- alpha
+    # omega_list[[count]] <- omega
+    # rho_list[[count]] <- rho
+    # beta_list[[count]] <- beta
+    # beta_diffs[[count]] <- diffs
   }
   return(list(etas = list(eta_list), 
               alphas = list(alpha_list), 
@@ -196,8 +131,78 @@ dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
 
 
 
-update_rho_omega_R <- function(){
+#' Update rho, omega, and R inv 
+#'
+#' @param X 
+#' @param beta 
+#' @param Y 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+update_phi_R_inv <- function(X, beta, Y){
+  eta <- as.vector(X %*% beta) 
+  alpha <- exp(eta) 
+  alpha0 <- colSums(matrix(alpha, nrow = p))
+  mu <-  alpha / rep(alpha0, each = p)
+  diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
   
+  ### Now update omega, rho, 
+  # We use the residuals as the responses for the NLS regression
+  resid <- diag(A %*% Diagonal(x = Y - mu))
+  # Setup calculated residuals for nls fxn
+  # Need to "flatten" so each residual in the residual matrix 
+  # These are squared residuals 
+  cross_resids <- data.frame(id,resid) %>% 
+    group_by(id) %>% 
+    group_map(~tcrossprod(.x$resid))
+  
+  
+  cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
+  
+  # resids_sparse <- as.matrix(bdiag(resids))
+  # flat_resids <- resids_sparse[upper.tri(resids_sparse)]
+  # flat_resids <- flat_resids[flat_resids != 0]
+  # Overdispersion 
+  # This is actually phi inverse? According to GEE paper
+  # sum of squared residuals 
+  phi <- as.numeric(sum(resid^2)*(1/(n-(q-1))))
+  
+  print(paste0("phi = ", phi))
+  
+  browser()
+  # Get dirichlet correlation part
+  cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
+  cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
+  
+  
+  # cor_dirichlet <- as.matrix(bdiag(cor_dirichlet_list))
+  # flat_cor_dir <- cor_dirichlet[upper.tri(cor_dirichlet)]
+  # flat_cor_dir <- flat_cor_dir[flat_cor_dir != 0]
+  
+  estimates <- nls_optim(cross_resid_vec/ phi, cor_dirichlet_vec, d_ijk)
+  
+  omega <- estimates[1]
+  rho <- estimates[2]
+  
+  print(paste0("omega  = ", omega, "rho = ", rho))
+  
+  # use current values of omega and rho to create
+  # present iteration of combined working correlation matrix. 
+  
+  Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
+  
+  # invert
+  # Use Moore-Penrose generalized inverse
+  R_invs <- map(Rs, ginv)
+  #R_invs <- map(Rs, solve)
+  R_inv <- bdiag(R_invs)
+  
+  
+  return(list(omega = omega, 
+              rho = rho, 
+              R_inv = R_inv))
 }
 
 
