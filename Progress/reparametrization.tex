@@ -1,0 +1,46 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Reparametrization }}
+%\rhead{\textbf{Reparametrization }}
+%\lhead{\textbf{Week}}
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\begin{itemize}
+  \item Idea to add zero-inflation to GEEs: Use generalized dirichlet distribution setup of increasing products of independent Beta random variables. 
+  \item Problem: Ordering: We can reduce the generalized dirichlet distribution to the dirichlet distribution,
+\end{itemize}
+
+\end{document}

@@ -7,6 +7,9 @@
 \usepackage{mdframed} % for boxes
 \usepackage{geometry} % For margins
 \usepackage{amsthm} % For theorems
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{amsmath,amsfonts} % For math
  \geometry{
  a4paper,
@@ -29,12 +32,283 @@
 \setlength{\parindent}{0pt}
 \begin{document}
 
+\section{Finals week}
+
+Problem - we still have infinite parameter estimates after second iteration.
+
+
+TODO
+\begin{itemize}
+  \item Figure out why code isn't working
+
+  \item check if ordering is correct- the ASV distances match the OTUs. -- Yes.
+\end{itemize}
+
+Current dataset is 19 taxa, 47 samples, 20\% zero entries, using the N vs G category 
+
+
+Check the X big is correct? Does X match up to Y?
+
+Note that
+\[\boldsymbol\beta = \begin{pmatrix}\beta_{0\text{ASV}_1} \\ \beta_{1, \text{ASV 1}} \\ \vdots \\ \beta_{0\text{ASV}_n} \\ \beta_{1, \text{ASV n}}\end{pmatrix} \]
+
+
+
+
+
+
+
+
+\section{Week 10}
+
+Goals for week/ TODO
+\begin{itemize}
+  \item Fix residuals - was squaring them
+
+  \item Change nls to optim
+  \item Think about stick/line update?
+  \item Add lambda to Hessian matrix to fix non-singularity problem.
+  \item Make sure phi is defined correctly and not the inverse?
+\end{itemize}
+
+Figured out bug. The hessian matrix was non-singular, since we have $p \times q$ covariates. Add a small $lambda I$ matrix, which makes it singular again? How does this work?
+
+The nls function seems to have problems a lot. Since we are just optimizing least squares of a non-linear function, the optim function should be just fine.
+
+Phi:
+
+\begin{align*}
+  \phi &=
+\end{align*}
+
+the residuals are squared, so we are dividing by square root, but the cross residuals are just divided by phi.
+
+Question:
+Initial values: do we set them as the previous iterations?
+
+
+Are we supposed to use phi for the residuals we use in the optim function?? works without...
+
+
+
+\subsection{Email update}
+This week I have been modifying the code based on our last meeting. I have added a small diagonal value to the hessian to fix the singularity issue. I have also changed to using the `optim` function instead of the `nls` function. I am still having issues with infinite parameter estimates. I am currently trying to locate what causes this, and seeing if using a modified update step would help here. 
+
+
+\section{Week 9}
+
+Goals for week:
+\begin{itemize}
+  \item Run code on zero-filtered zebrafish data. Need to see if model works on non-zero-inflated data.
+  \item From this run, include plots of iterations for parameter estimates etc.
+  \item If this works, work on re-parametrization
+  \item Figure out the last taxa - what to do
+  \item Partial derivative matrices - for both $\pi$ and $\mu$
+  \item Look in literature for ordering problem
+\end{itemize}
+
+\subsubsection*{Zebrafish code}
+
+Still unsure if phylogenic tree included is correct.
+
+Code to load data is in the `zebrafish\_data.R` file.
+
+Same problem as previously - the ASvss are labled by their DNA seqs, so naming doesnt match
+
+I think I remember that the full\_ps file is what has the correct labels. - Yes. But still lowercase/uppercase asv. But same number of taxa, so a likely match. I will work under the assumption that the numbering is consistent, but this will need to be verified before we can rely on any results. Will merge without errors
+
+Probably emailing Tom after this week would be a good idea.
+
+What covariates to use? - indication of disease/antibiotic?
+
+Filtering steps
+\begin{enumerate}
+  \item Filter to only be last time point: day = 32 from 245 samples to 68 samples
+  \item Zero-inflation filter: filter present in 50\% of samples.  from 3895 taxa to 19: Zeros: 30\% of data
+\end{enumerate}
+
+Use the function \texttt{phyloseq\_filter\_prevalence} from package \texttt{metagMisc} to filter present in 50\% of samples.
+
+Now calculate distance matrix from phylogenetic tree using \texttt{Disttips} function. Done!
+
+
+Now run total sum scaling on the remaining OTUs.
+
+Now run model! in \texttt{zebra\_model\_run.R}
+
+Current model code is in \texttt{dm\_cor\_gee\_clean.R}. Two versions. Which to edit? clean one for now.
+
+Note that even with the zero filtering, the distribution of the Ys (responses) is heavily skewed
+
+\includegraphics[width=0.45\textwidth]{img/Progress_Report-ce0570ff.png}
+
+Still trying to figure out the best way to define X. As its own, or in big matrix form.
+
+
+Initializing the $\beta$ column, which is just initializing the intercept, or initializing $\alpha$.
+
+Idea: $\alpha_j = \bar y_j/ \sum_s \bar y_j$
+Simpler idea: set everything to zero.
+
+Distance matrix, pass in argument as dist(), then dont need upper.triangular code
+
+Initial iteration
+all alpha = 1, alpha0 = p = 19
+all diagonals of A are the same (inverse dirichlet variance)
+
+What did we decide about overdispersion?
+
+Is $A$ just the variance? or covariance? It should be covaraince right? No it is variance. Covariance comes from the part of the working correlation matrix, since from variance and correlation we can get covariance.
+
+
+GEE:
+
+Working COVariance matrix $V_i$
+
+\begin{align*}
+  V_i = A_i^{1/2}R_i A_i^{1/2}
+\end{align*}
+where $R_i$ is the working CORrelation matrix, which should have values between 0 and 1, and should have diagonal entries of 1.
+
+
+Why is Dirichlet correlation not have diagonal entries of 1? Because covariance is not defined the same if $i = j$. So is it ok we just define the diagonal as 1? I think so.
+
+
+Back to initialization idea: Using all zeros doesnt work. (maybe for other reasons). Might be the problem since everything is the same? Although the residuals aren't the same after the first iteration. But try to initialize the beta intercept better.
+
+
+Currently, the code will not finish running. It will not even run to the second iteration. Errors in nls:
+Error in nls(y ~ w * r + (1 - w) * exp(-2 * rho * d), data = nls\_data\_frame,  :
+  number of iterations exceeded maximum of 50
+In addition: Warning message:
+In solve(hess, esteq) :
+  Exact singularity detected during LU decomposition: U[i,i]=0, i=3.
+
+
+NLS error comes from the fact that literally everything is NaN, since $\beta$ starts the second loop as all NaN.
+If we have more that one iteration in the beta loop beta goes to Nan, likely because we are dividing by zero.
+
+Interestingly, only the first several betas are non-zero.
+
+
+Maybe also filter samples? Some samples have 0 values for more than 70\% of the ASVs.
+
+Filter samples to only include if less than 40\% of the covariates (ASVs) are non-zero.
+
+
+FIXED - add phi to the Vi. Seems to give more reasonable beta estimates. Still have error of Warning message:
+In solve(hess, esteq) :
+  Exact singularity detected during LU decomposition: U[i,i]=0, i=25.
+
+I think this is why the later betas are 0.
+
+
+With dividing by phi, on the second iteration phi is NaN, since some of the alphas are infinity.
+
+
+
+
+TRY: ignore phylogenetic correlation portion.
+
+
+Could this be a Matrix package bug? - likely not
+
+Try converting to regular Matrix - still error
+
+Error in solve.default(as.matrix(hess), as.matrix(esteq)) :
+  Lapack routine dgesv: system is exactly singular: U[25,25] = 0
+
+IDEA: filter samples so can actually visualize
+
+
+Check beta updates in loops correctly named
+
+Idea: have the beta loop before nls
+
+TODO: split up update rho, update beta into separate functions
+
+Double check phis
+
+Is it beta + update or beta - update ???????
+If this is wrong it could be inflating the values, but this is not where the initial problem comes from.
+
+
+
+IDEA: initializing the intercept beta term to $\bar y_i/\sum \bar y_j$. No should be log? Since we are initilizing beta and $\log \alpha_j = X \beta_j$.
+
+Not a good idea, since $\sum \bar y = 1$
+
+Note that there is very little variation among the means of the OTUs across samples!
+
+I think we add the update...
+If it is Newton-Rhapson, we subtract, if it is Fisher scoring, we add.
+According to GEE paper, it is Fisher scoring, but in the paper, they subtract...
+
+
+If we divide residuals by square root phi,
+
+\subsection*{Algorithm}
+
+\begin{algorithm}
+\caption{An algorithm with caption}\label{alg:cap}
+\begin{algorithmic}
+\State $y = $ proportions of ASVs
+\State $x = $ matrix of covariates
+\State $n = $ number of samples
+\State $p = $ number of OTUs
+\State $q = $ number of covariates + intercept
+\State $X = $ kronecker product of covariates
+\State Initialize $\beta, \rho, \omega, \alpha, A$
+\Loop
+  \Loop
+  \State $\eta \gets X \beta$
+  \State $\alpha \gets e^\eta$
+  \State $\mu \gets \alpha/\alpha_0$
+  \State $\Delta \gets \frac{1}{\alpha_0^2} ( \alpha_0(\text{diag}(\alpha_i)) - \alpha_i \alpha_i^t ) \otimes x $
+  \State $V^{-1} \gets \frac{1}{\phi} A^{-1/2} R^{-1} A^{-1/2}$
+  \State Hessian: $H = \Delta V ^{-1} \Delta^t$
+  \State Estimating equations $E = \Delta V ^{-1}(Y - \mu)$
+  \State update = \texttt{solve(H, E)}
+  \State $\beta^+ \gets \eta$ - update
+  \EndLoop
+  \State $\eta \gets X \beta$
+  \State $\alpha \gets e^\eta$
+  \State $\mu \gets \alpha/\alpha_0$
+  \State $A^{-1/2} \gets \sqrt{\frac{1}{\text{Dirichlet Variance}(\alpha,n,p)}}$ - diagonal matrix
+  \State resids:$e \gets A^{1/2}(Y - \mu)$
+  \State $\phi \gets \frac{1}{n-(q-1)} e e^t$
+  \State Estimate $\omega, \rho$: NLS: \texttt{nls}$(e e^t \sim \omega \text{Cor}_D + (1 - \omega)e^{-2\rho D})$
+  Initial values of $\omega = \tfrac{1}{2}, \rho = 1$
+  \Comment{If $\rho < 0$, set $\rho = 0$}
+  \State $R \gets \omega\text{Cor}_D + (1 - \omega)e^{-2\rho D}$
+  \State Solve $R ^{-1} $ by Moore-Penrose Inverse
+
+\EndLoop
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Questions}
+How is compositionally affected when the majority of taxa contained in original sample are filtered out?
+
+How do we initialize the beta column? Especially the intercept. Because we dont have estimates for the $\alpha$ vector yet, and we dont link $y$s to the $\alpha$s.
+
+How should we initialize the rho vector?
+
+Should the nls omega and rho start at their old values?
+
+\subsubsection*{Email update}
+This week I have returned to coding using the zebrafish dataset. I filtered the dataset so it only contains about 20\% zero entries, but I am still running into the same problem I was previously. After the first iteration many of the estimated Dirichlet alpha parameters are infinite. I believe the issue is coming from the step of solving the estimating equations, as the hessian matrix is singular in the first iteration. Can we walk through the code in our meeting Friday to try to figure out where the problem comes from?
+
+\subsubsection*{Meeting agenda}
+
+\hrulefill
+
 \section{October 27}
 
 Having a hard time starting today! Need to write up everything for the presentation on Monday.
 
 Read up more on the evolutionary trait model original paper \cite{Martins1997}
-Their version of the correlation assumes that phenotypic evolution (evolution by traits?) is thought to be constrained such that extreme phenotypic values are more likeliy to evolve toward less extreme values. These include evolutionary models that include a stabilizing selection. What does this mean and is it relevant for MB data? 
+Their version of the correlation assumes that phenotypic evolution (evolution by traits?) is thought to be constrained such that extreme phenotypic values are more likeliy to evolve toward less extreme values. These include evolutionary models that include a stabilizing selection. What does this mean and is it relevant for MB data?
 
 The plan for the rest of the day is to work on the presentation and do work to fill in the gaps.
 
