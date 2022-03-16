@@ -54,6 +54,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   rho_list <- list()
   beta_list <- list()
   beta_diffs <- list()
+  phi_list <- list()
   
   # Initial values for rho, omega, phi 
   rho <- 1
@@ -65,13 +66,15 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   
   # Main loop
   count <- 0
-  while(count < 5){
+  diff <- 100
+  while( diff > .1 & count < 25){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
     # Update beta loop 
     # Depends on "fixed" values of rho, omega and phi, 
     # Which are used to make R_inv 
+    beta.old <- beta
     beta <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
                         phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id)
   
@@ -83,20 +86,24 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
     R_inv <- temp_res$R_inv
     phi <- temp_res$phi
     
+    
+    diff <- sum(abs(beta.old - beta))
+    print(paste0("Difference = ", diff))
     # Save estimates when things start working 
     # eta_list[[count]] <- eta
     # alpha_list[[count]] <- alpha
-    # omega_list[[count]] <- omega
-    # rho_list[[count]] <- rho
-    # beta_list[[count]] <- beta
-    # beta_diffs[[count]] <- diffs
+     omega_list[[count]] <- temp_res$omega
+     rho_list[[count]] <- temp_res$rho
+     beta_list[[count]] <- beta
+     beta_diffs[[count]] <- diff
+     phi_list[[count]] <- phi
+    
   }
-  return(list(etas = list(eta_list), 
-              alphas = list(alpha_list), 
-              omegas = omega_list, 
-              rhos = rho_list, 
-              betas = list(beta_list), 
-              beta_convergences = beta_diffs,
+  return(list(betas = list(beta_list),
+              omegas = unlist(omega_list), 
+              rhos = unlist(rho_list), 
+              phis = unlist(phi_list),
+              beta_convergences = unlist(beta_diffs),
               num_iter = count))
 }
 
@@ -129,57 +136,45 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
   ### Now update omega, rho, 
   # We use the residuals as the responses for the NLS regression
   resid <- diag(A %*% Diagonal(x = Y - mu))
+  
   # Setup calculated residuals for nls fxn
   # Need to "flatten" so each residual in the residual matrix 
   # These are squared residuals 
   cross_resids <- data.frame(id,resid) %>% 
     group_by(id) %>% 
     group_map(~tcrossprod(.x$resid))
-  
-  
   cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
   
-  # resids_sparse <- as.matrix(bdiag(resids))
-  # flat_resids <- resids_sparse[upper.tri(resids_sparse)]
-  # flat_resids <- flat_resids[flat_resids != 0]
   # Overdispersion 
-  # This is actually phi inverse? According to GEE paper
+  # This is actually phi inverse. According to GEE paper
   # sum of squared residuals 
-
   phi <- as.numeric(sum(resid^2)*(1/(n-(q-1))))
-  
   print(paste0("phi = ", phi))
   
   # Get dirichlet correlation part
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
   
-  
-  # cor_dirichlet <- as.matrix(bdiag(cor_dirichlet_list))
-  # flat_cor_dir <- cor_dirichlet[upper.tri(cor_dirichlet)]
-  # flat_cor_dir <- flat_cor_dir[flat_cor_dir != 0]
-  
-  estimates <- nls_optim(cross_resid_vec/ phi, cor_dirichlet_vec, d_ijk)
+  # standardize cross prod residuals by dividing by phi. 
+  # CHECK THIS
+  estimates <- nls_optim(cross_resid_vec*phi, cor_dirichlet_vec, d_ijk)
   
   omega <- estimates[1]
   rho <- estimates[2]
-  
   print(paste0("omega  = ", omega, " , rho = ", rho))
   
   # use current values of omega and rho to create
   # present iteration of combined working correlation matrix. 
-  
   Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
   
-  # invert
-  # Use Moore-Penrose generalized inverse
+  # invert using Moore-Penrose generalized inverse (solve will not work)
   R_invs <- map(Rs, ginv)
-  #R_invs <- map(Rs, solve)
   R_inv <- bdiag(R_invs)
   
-  
   return(list(phi = phi, 
-              R_inv = R_inv))
+              R_inv = R_inv, 
+              omega = omega, 
+              rho = rho))
 }
 
 

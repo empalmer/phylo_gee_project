@@ -67,6 +67,21 @@ Lets replace this! - Done! replaced with a get\_eta fxn
 Wondering do use residuals scaled?
 Ie, do we use $e = A (Y - \mu)$
 
+Before meeting
+Double check phis / change to match GEE paper
+Understand why alpha, rho = 0
+Try with new dataset
+
+I think i fixed it!! AHH
+
+Problem was since we are using phi as 1/phi from GEE paper, V is V*phi, and V inverse is Vinverse/phi
+
+But now we have insanely large phi, 42 billion....
+Actually this was another phi problem. In the nls function we use the crossprod* phi, not divided by. 
+
+BUT now alpha = 0 and rho = 0.
+
+Independence???
 
 \section{Week 10}
 
