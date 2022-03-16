@@ -41,10 +41,12 @@ TODO
 \begin{itemize}
   \item Figure out why code isn't working
 
+
+  \item Stop using big X big kronecker product to calculate etas. Unecesarry
   \item check if ordering is correct- the ASV distances match the OTUs. -- Yes.
 \end{itemize}
 
-Current dataset is 19 taxa, 47 samples, 20\% zero entries, using the N vs G category 
+Current dataset is 19 taxa, 47 samples, 20\% zero entries, using the N vs G category
 
 
 Check the X big is correct? Does X match up to Y?
@@ -53,10 +55,17 @@ Note that
 \[\boldsymbol\beta = \begin{pmatrix}\beta_{0\text{ASV}_1} \\ \beta_{1, \text{ASV 1}} \\ \vdots \\ \beta_{0\text{ASV}_n} \\ \beta_{1, \text{ASV n}}\end{pmatrix} \]
 
 
+Wondering if the way the distance matrix is created if we arent matching the correct ASVs?
 
 
 
+Looks like we are only using big X for calculating eta.
 
+Lets replace this! - Done! replaced with a get\_eta fxn
+
+
+Wondering do use residuals scaled?
+Ie, do we use $e = A (Y - \mu)$
 
 
 \section{Week 10}

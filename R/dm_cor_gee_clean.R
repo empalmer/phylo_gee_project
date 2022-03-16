@@ -10,63 +10,41 @@
 #' @export
 #'
 #' @examples
-dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
+dm_cor_gee <- function(Y, X, sample_id, ASV_id,
+                       distance_matrix, intercept = T){
   require(tidyverse)
   require(Matrix)
   require(MASS)
   
-
   # Set up indeces 
   # Number of subjects i = 1,...,n
-  n <- length(unique(id))
+  n <- length(unique(sample_id))
   # Number of ASVs j = 1,...,p
   p <- length(Y)/n
-  # Convert into correct model matrix format 
   # Number of covariates: k = 1,...,q
   q <- 1 + intercept
   
-  # Save a design matrix form for GEE portion
-  X_vecs <- X
+  
   # Add intercept, so a dataframe of the Xs plus a col of 1
-  X_intercept <- data.frame(int = rep(1, n), 
-                            X = X_vecs)
-  # convert from dataframe to matrix
-  X_mat <- as.matrix(X_intercept, nrow = n)
-  
-  # This makes the kronecker product 
-  X_big_i <- list()
-  for( i in 1:n){
-    X_big_i[[i]] <- matrix(
-      bdiag(
-        rep(list(matrix(X_mat[i,], nrow =1)),p)), nrow =p)
+  if(intercept){
+    X <- model.matrix(~x, data.frame(x = X))
   }
-  X <- reduce(X_big_i, rbind)
-  
-  # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
 
+
+  # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
   beta_matrix <- matrix(0, nrow = q, ncol = p)
-  
-  # fix this: 
   # The Dirichlet link function is the log
   y_means <- colMeans(matrix(Y, ncol = p))
-  # Initialize the beta intercept term as ybar/ sum(ybar)
-  # But sum = 1
+  # Initialize the beta intercept term as ybar/ sum(ybar) = 1
   beta_matrix[1,] <- log(y_means/sum(y_means))
-
   # convert matrix to vector
   beta <- as.vector(beta_matrix)
   
-  # Initialize the A matrix which is a diagonal matrix of the inverse of the square root of the variance
-  # Here it is (nxp)x(nxp) 
-  # This is using the Matrix package diagonal function
-  A <- Diagonal(n*p)
-  # Set up distance matrix
-  # Switch to take a dist object as an argument 
-  d_jk <- distance_matrix[upper.tri(distance_matrix)]
   
+  # Set up distance matrix
+  d_jk <- distance_matrix[upper.tri(distance_matrix)]
   # Since d_jk doesnt have an i index we need to repeat it for each sample
   d_ijk <- rep(d_jk,n)
-  
   
   
   # Set up storage to keep track of parameter values in each iteration 
@@ -82,15 +60,8 @@ dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
   omega <- 0.5
   phi <- 1
   
-  # Initial value for R, R_inverse 
-  eta <- as.vector(X %*% beta) 
-  alpha <- exp(eta) 
-  alpha0 <- colSums(matrix(alpha, nrow = p))
-  cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
-  Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
-  # Use Moore-Penrose generalized inverse
-  R_invs <- map(Rs, ginv)
-  R_inv <- bdiag(R_invs)
+  # Initialize R_inv 
+  R_inv <- get_R_inv(X, beta, omega, rho, D, n, p)
   
   # Main loop
   count <- 0
@@ -98,18 +69,19 @@ dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
-    browser()
-    
     # Update beta loop 
     # Depends on "fixed" values of rho, omega and phi, 
     # Which are used to make R_inv 
-    beta <- update_beta(Y, X_mat, beta, R_inv, phi, n_iter = 1)
+    beta <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
+                        phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id)
   
     # Update R inverse by updating omega and rho 
-    temp_res <- update_R_phi <- function(Y, X, beta)
+    temp_res <- update_phi_R_inv(Y = Y, X = X, id = sample_id,
+                                 distance_matrix = distance_matrix,
+                                 d_ijk = d_ijk,
+                                 beta = beta, n = n, p = p, q = q)
     R_inv <- temp_res$R_inv
     phi <- temp_res$phi
-    
     
     # Save estimates when things start working 
     # eta_list[[count]] <- eta
@@ -141,12 +113,18 @@ dm_cor_gee2 <- function(Y, X, id, distance_matrix, intercept = T){
 #' @export
 #'
 #' @examples
-update_phi_R_inv <- function(X, beta, Y){
-  eta <- as.vector(X %*% beta) 
+update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
+  
+  eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta) 
   alpha0 <- colSums(matrix(alpha, nrow = p))
   mu <-  alpha / rep(alpha0, each = p)
+  A <- Diagonal(n*p)
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
+  
+  if(any(is.infinite(diag(A))) | any(is.nan(diag(A)))) {
+    stop("Infinite values due to infinite valued alpha or A")
+  }
   
   ### Now update omega, rho, 
   # We use the residuals as the responses for the NLS regression
@@ -167,11 +145,11 @@ update_phi_R_inv <- function(X, beta, Y){
   # Overdispersion 
   # This is actually phi inverse? According to GEE paper
   # sum of squared residuals 
+
   phi <- as.numeric(sum(resid^2)*(1/(n-(q-1))))
   
   print(paste0("phi = ", phi))
   
-  browser()
   # Get dirichlet correlation part
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
@@ -186,7 +164,7 @@ update_phi_R_inv <- function(X, beta, Y){
   omega <- estimates[1]
   rho <- estimates[2]
   
-  print(paste0("omega  = ", omega, "rho = ", rho))
+  print(paste0("omega  = ", omega, " , rho = ", rho))
   
   # use current values of omega and rho to create
   # present iteration of combined working correlation matrix. 
@@ -200,8 +178,7 @@ update_phi_R_inv <- function(X, beta, Y){
   R_inv <- bdiag(R_invs)
   
   
-  return(list(omega = omega, 
-              rho = rho, 
+  return(list(phi = phi, 
               R_inv = R_inv))
 }
 
@@ -220,38 +197,48 @@ update_phi_R_inv <- function(X, beta, Y){
 #' @export
 #'
 #' @examples
-update_beta <- function(Y, X_mat, beta, R_inv, phi, n_iter = 1){
+update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
   beta.new <- beta
   diffs <- numeric(1)
+  A <- Diagonal(n*p)
   for(s in 1:n_iter){
     print(paste0("Beta iteration ", s))
+    # Used for convergence criteria 
     beta.old <- beta.new
-    eta <- as.vector(X %*% beta.new) 
+    
+    eta <- get_eta(X, beta, n, p)
+    # eta <- as.vector(X %*% beta.new) 
     alpha <- exp(eta) 
     alpha0 <- colSums(matrix(alpha, nrow = p))
     mu <-  alpha / rep(alpha0, each = p)
     
+    # A is A^{-1/2}
     diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
+    
     # Make the partials for each block.
     partiali <- list()
     for(i in 1:n){
       alphai0 <- alpha0[i]
-      xi <- X_mat[i,]
+      xi <- X[i,]
       alphai <- alpha[((i-1)*p + 1):(i*p)]
       
       # this xi is the vector xi. 
       partiali[[i]] <- (1/alphai0)^2*kronecker((alphai0*diag(alphai) - 
                                                   alphai %*% t(alphai)),xi)
     }
-    # NOT bdiag. Instead a long cbinded matrix of pqxnp
+    # dimension of partials is pq * np 
     partials <- purrr::reduce(partiali, cbind)
-    
     
     # Save V inv 
     # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
     # V_inv <- 1/phi * A %*% R_inv %*% A
-    V_inv <- phi * A %*% R_inv %*% A
+    # Did i mess up the phis? 
+    V_inv <- (1/phi) * A %*% R_inv %*% A
     
+
+    # Since we have more parameters than samples 
+    # likely hessian matrix will be singular 
+    # add a small diagonal lambda to hessian matrix. 
     hess <- partials %*% V_inv %*% t(partials) + diag(rep(.001, q*p))
     # GEE estimating equations/ gradient 
     esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
@@ -261,7 +248,8 @@ update_beta <- function(Y, X_mat, beta, R_inv, phi, n_iter = 1){
     
     # Save to see speed of convergence
     diffs[s] <- sum((beta.new - beta.old)^2)
-    print(paste0("beta = ",beta.new))
+
+    print(paste0("beta ",  rep(ASV_id, each = q), " = ",beta.new))
   }
   beta <- beta.new
   return(beta)
@@ -356,3 +344,24 @@ nls_optim <- function(resid_vec, cor_vec, D_vec){
   return(estimates$par)
 }
 
+
+
+get_eta <- function(X, beta, n, p){
+  X_list <- as.list(data.frame(t(X)))
+  beta_mat <- matrix(beta, nrow = p, byrow = F)
+  unname(unlist(map( X_list, ~ as.numeric(tcrossprod(.x, beta_mat)))))
+}
+
+get_R_inv <- function(X, beta, omega, rho, D, n, p){
+  # Initialize eta 
+  eta <- get_eta(X, beta, n, p)
+  alpha <- exp(eta) 
+  alpha0 <- colSums(matrix(alpha, nrow = p))
+  
+  
+  cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
+  Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*D))
+  # Use Moore-Penrose generalized inverse
+  R_invs <- map(Rs, ginv)
+  R_inv <- bdiag(R_invs)
+}
