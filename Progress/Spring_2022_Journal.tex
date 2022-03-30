@@ -1,0 +1,63 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Spring 2020 PhD research}}
+
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+
+\section{Week 1}
+
+TODO
+
+\begin{itemize}
+  \item Broad goal: Fix code:
+  \item Write up where problems are happening
+  \item Start using less filtered dataset. Also try other covariate?
+\end{itemize}
+
+
+
+\subsection{Data filtering}
+Only use day 32.
+
+Prevalence threshold. Only include taxa with more than 1 read in at least 30\% of samples.
+This results in 39 taxa and 68 samples. The percent of the data is 46.3. 
+
+Then calculate absolute abundance.
+
+The current covariate being used is
+
+\end{document}

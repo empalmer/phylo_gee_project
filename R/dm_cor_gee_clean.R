@@ -16,6 +16,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   require(Matrix)
   require(MASS)
   
+  browser()
   # Set up indeces 
   # Number of subjects i = 1,...,n
   n <- length(unique(sample_id))
@@ -145,12 +146,14 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
     group_map(~tcrossprod(.x$resid))
   cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
   
-  # Overdispersion 
-  # This is actually phi inverse. According to GEE paper
-  # sum of squared residuals 
-  phi <- as.numeric(sum(resid^2)*(1/(n-(q-1))))
-  print(paste0("phi = ", phi))
   
+  # Overdispersion 
+  # phi = 1/(sum sum r^2)/(N-p)
+  # sum of squared residuals 
+  phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
+  print(paste0("phi = ", phi))
+
+
   # Get dirichlet correlation part
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
@@ -226,9 +229,8 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
     
     # Save V inv 
     # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
-    # V_inv <- 1/phi * A %*% R_inv %*% A
-    # Did i mess up the phis? 
-    V_inv <- (1/phi) * A %*% R_inv %*% A
+    # V <- 1/phi * A %*% R %*% A
+    V_inv <- phi * A %*% R_inv %*% A
     
 
     # Since we have more parameters than samples 
@@ -329,17 +331,19 @@ get_dirichlet_cor <- function(alpha,n,p){
 #'
 #' @examples
 nls_optim <- function(resid_vec, cor_vec, D_vec){
+  
   par <- list(omega = .5, 
               rho = 1)
   fun <- function(par){
     sum((resid_vec - (par[1]*cor_vec + (1 - par[1])*exp(-2*par[2]*D_vec)))^2)
   }  
   
-  estimates <- optim(par, fun,  lower=c(0,0), upper= c(1, Inf),method="L-BFGS-B")
+  #estimates <- optim(par, fun)
+  estimates <- optim(par, fun,  lower=c(0,0), upper= c(1, Inf),
+                     method="L-BFGS-B")
+
   return(estimates$par)
 }
-
-
 
 get_eta <- function(X, beta, n, p){
   X_list <- as.list(data.frame(t(X)))

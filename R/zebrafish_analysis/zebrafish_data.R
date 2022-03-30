@@ -52,7 +52,7 @@ phy_tree(zebra_phy) <- zebra_tree
 
 day32 <- prune_samples(sample_data(zebra_phy)$day == 32,zebra_phy)
 # 68 samples
-
+day32
 
 
 # filter to for abundance 
@@ -63,9 +63,11 @@ require(metagMisc)
 #original percent of data zeros 
 sum(otu_table(day32) == 0)/(3895*68)
 # Include only taxa with more than 1 reads (on average) in at least 50% samples
-filtered_zebras <- phyloseq_filter_prevalence(day32, prev.trh = 0.5, abund.trh = NULL) 
+filtered_zebras <- phyloseq_filter_prevalence(day32, prev.trh = 0.3, abund.trh = NULL) 
+filtered_zebras
+
 # percent of data zeros: 
-sum(otu_table(filtered_zebras) == 0)/(19*68)
+sum(otu_table(filtered_zebras) == 0)/(39*68)
 
 
 

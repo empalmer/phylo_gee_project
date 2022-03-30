@@ -77,11 +77,29 @@ I think i fixed it!! AHH
 Problem was since we are using phi as 1/phi from GEE paper, V is V*phi, and V inverse is Vinverse/phi
 
 But now we have insanely large phi, 42 billion....
-Actually this was another phi problem. In the nls function we use the crossprod* phi, not divided by. 
+Actually this was another phi problem. In the nls function we use the crossprod* phi, not divided by.
 
 BUT now alpha = 0 and rho = 0.
 
 Independence???
+
+\subsection{Meeting notes}
+
+Ok, now rho is not zero, but rho is 130 ish which means we have independence.
+
+Fixed problem where phi was calculated incorrectly since N is n*p and P is p*q.
+
+Problem: betas are huge, which means alphas are huge which means variance standardizing residuals are huge.
+
+Figure out problem between first and second step
+
+Figure out why all alphas are the same for the same covariates.
+
+Try using a step update or a constant times update.
+
+Look at histograms of residuals and standard deviations of residuals.
+
+Try not filtering so much
 
 \section{Week 10}
 
