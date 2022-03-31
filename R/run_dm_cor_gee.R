@@ -45,13 +45,15 @@ res_geepack$coefficients
 # Number of OTUs 
 source(here::here("R","dm_cor_gee.R"))
 all_samples_test <- dm_cor_gee(Y = Y_data_all_samples,X =  X_data_all_samples,
-           id = id_all_samples, distance_matrix = D_filtered)
+           sample_id = id_all_samples, distance_matrix = D_filtered, 
+           ASV_id = )
 
 
 
 # Try on dataset with all samples and less filtered OTUs: 
 # use 45% prevalence which gives 193 ASVs and 100 samples
-source(here::here("R","dm_cor_gee.R"))
+source(here::here("R","dm_cor_gee_clean.R"))
 all_samples_test <- dm_cor_gee(Y = Y_data_45_all,X =  X_data_45_all,
-                               id = id_45_all, distance_matrix = D_filtered_45)
+                               sample_id = id_45_all, distance_matrix = D_filtered_45, 
+                               ASV_id = ASV_ids_45)
 

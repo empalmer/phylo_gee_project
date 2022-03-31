@@ -112,3 +112,5 @@ Y_data_45_all <- mb_data_45$Y
 id_45_all <- mb_data_45$sampleID
 X_data_45_all <- y.tr
 D_filtered_45 <- D[taxa_names(psf_45),taxa_names(psf_45)]
+
+ASV_ids_45 <- taxa_names(psf_45)

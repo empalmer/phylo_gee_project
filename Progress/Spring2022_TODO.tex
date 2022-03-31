@@ -1,0 +1,108 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Research TODO}}
+
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+% For checklist
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+\hspace{-2.5pt}}
+\newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
+
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\section{Week 1}
+
+\begin{itemize}
+  \item Broad goal: Fix code.
+  \begin{todolist}
+    \item[\done] Use less filtered dataset
+    \begin{itemize}
+      \item Now at 30\% with 39 taxa.
+    \end{itemize}
+    \item[\done] Make graphs of parameter values at each iteration
+    \begin{itemize}
+      \item Did a lot of graphs, histograms and changes of betas between loops. Need to do final after changes are made.
+    \end{itemize}
+    \item[\done] Try stepwise update
+    \begin{itemize}
+      \item Using .1 as a constant. Still doesnt work, so likely a more complicated approach would not be helpful.
+    \end{itemize}
+    \item[\done] Fix problem where R inverse and others not updating in beta loop
+    \item[\done] Change R-inv function to depend on alpha instead of X and beta since already calculated.
+    \item[\done] Flip order of beta and phi loops.
+    \item[\done] Look at residuals in each iteration. (in phi step)
+    \item Keep something constant through loop and/or try using identity for R.
+    \item[\done] Try different dataset? Maybe simulated one from previous paper.
+    \begin{itemize}
+      \item Same troubles
+    \end{itemize}
+    \item Distance matrix argument to dist?
+    \begin{itemize}
+      \item Need both forms, so may or may not be useful
+    \end{itemize}
+    \item Check if phi is correct now, and see how is used
+    \item[\done] Figure out large alpha problem
+    \begin{itemize}
+      \item Seems the + and one loop beta fixed this?
+    \end{itemize}
+    \item Try a different covariate?
+    \item Figure out why geem code uses + instead of - on update
+    \begin{itemize}
+      \item I think + is correct. At least it converges.
+    \end{itemize}
+    \item Identify which covariate is causing the trouble.
+    \item Try removing the single OTU that seems to be contributing to problem.
+    \item Save everything to list correctly to look at later.
+    \begin{itemize}
+      \item Saving rho, omega, phi, beta, diff (abs), num iterations
+      \item Also do residuals.
+    \end{itemize}
+    \item Plot lists
+    \item Remove scalar update.
+    \item Write up algorithm for Yuan to go through? Ask to check.
+    \item Final run through before meeting of graphs and numbers
+  \end{todolist}
+\end{itemize}
+
+
+
+\end{document}

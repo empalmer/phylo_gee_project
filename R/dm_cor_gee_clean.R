@@ -16,7 +16,6 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   require(Matrix)
   require(MASS)
   
-  browser()
   # Set up indeces 
   # Number of subjects i = 1,...,n
   n <- length(unique(sample_id))
@@ -24,7 +23,6 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   p <- length(Y)/n
   # Number of covariates: k = 1,...,q
   q <- 1 + intercept
-  
   
   # Add intercept, so a dataframe of the Xs plus a col of 1
   if(intercept){
@@ -56,43 +54,42 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   beta_list <- list()
   beta_diffs <- list()
   phi_list <- list()
-  
-  # Initial values for rho, omega, phi 
-  rho <- 1
-  omega <- 0.5
-  phi <- 1
-  
-  # Initialize R_inv 
-  R_inv <- get_R_inv(X, beta, omega, rho, D, n, p)
+  update_list <- list()
   
   # Main loop
   count <- 0
   diff <- 100
-  while( diff > .1 & count < 25){
+  while( diff > .1 & count < 500){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
+    # Step 1
+    # Update R inverse by updating omega and rho 
+    temp_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
+                                 distance_matrix = distance_matrix,
+                                 d_ijk = d_ijk,
+                                 beta = beta, n = n, p = p, q = q)
+    phi <- temp_res$phi
+    rho <- temp_res$rho
+    omega <- temp_res$omega
+    
+    # Step 2
     # Update beta loop 
     # Depends on "fixed" values of rho, omega and phi, 
     # Which are used to make R_inv 
     beta.old <- beta
     beta <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
-                        phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id)
+                        phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id,
+                        rho, omega, D = distance_matrix)
   
-    # Update R inverse by updating omega and rho 
-    temp_res <- update_phi_R_inv(Y = Y, X = X, id = sample_id,
-                                 distance_matrix = distance_matrix,
-                                 d_ijk = d_ijk,
-                                 beta = beta, n = n, p = p, q = q)
-    R_inv <- temp_res$R_inv
-    phi <- temp_res$phi
     
     
+    # Convergence and saving details
     diff <- sum(abs(beta.old - beta))
     print(paste0("Difference = ", diff))
     # Save estimates when things start working 
     # eta_list[[count]] <- eta
-    # alpha_list[[count]] <- alpha
+     #alpha_list[[count]] <- alpha
      omega_list[[count]] <- temp_res$omega
      rho_list[[count]] <- temp_res$rho
      beta_list[[count]] <- beta
@@ -121,8 +118,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
 #' @export
 #'
 #' @examples
-update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
-  
+update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta) 
   alpha0 <- colSums(matrix(alpha, nrow = p))
@@ -138,6 +134,12 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
   # We use the residuals as the responses for the NLS regression
   resid <- diag(A %*% Diagonal(x = Y - mu))
   
+  #print("unstandardized residuals")
+  #print( summary(as.numeric(resid)))
+  
+  #hist(resid)
+  
+  
   # Setup calculated residuals for nls fxn
   # Need to "flatten" so each residual in the residual matrix 
   # These are squared residuals 
@@ -151,9 +153,12 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
   # phi = 1/(sum sum r^2)/(N-p)
   # sum of squared residuals 
   phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
-  print(paste0("phi = ", phi))
 
-
+  #print("standardized residuals")
+  #print(summary(resid*phi))
+  #hist(resid*phi)
+  
+  
   # Get dirichlet correlation part
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
@@ -164,18 +169,17 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
   
   omega <- estimates[1]
   rho <- estimates[2]
-  print(paste0("omega  = ", omega, " , rho = ", rho))
+  print(paste0("phi = ", phi,", omega  = ", omega, " , rho = ", rho))
   
-  # use current values of omega and rho to create
-  # present iteration of combined working correlation matrix. 
-  Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
-  
-  # invert using Moore-Penrose generalized inverse (solve will not work)
-  R_invs <- map(Rs, ginv)
-  R_inv <- bdiag(R_invs)
+  # # use current values of omega and rho to create
+  # # present iteration of combined working correlation matrix. 
+  # Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
+  # 
+  # # invert using Moore-Penrose generalized inverse (solve will not work)
+  # R_invs <- map(Rs, ginv)
+  # R_inv <- bdiag(R_invs)
   
   return(list(phi = phi, 
-              R_inv = R_inv, 
               omega = omega, 
               rho = rho))
 }
@@ -195,7 +199,12 @@ update_phi_R_inv <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
 #' @export
 #'
 #' @examples
-update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
+update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
+  
+  update_list <- list()
+  hess_list <- list()
+  ee_list <- list()
+  
   beta.new <- beta
   diffs <- numeric(1)
   A <- Diagonal(n*p)
@@ -204,7 +213,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
     # Used for convergence criteria 
     beta.old <- beta.new
     
-    eta <- get_eta(X, beta, n, p)
+    eta <- get_eta(X, beta.new, n, p)
     # eta <- as.vector(X %*% beta.new) 
     alpha <- exp(eta) 
     alpha0 <- colSums(matrix(alpha, nrow = p))
@@ -212,20 +221,11 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
     
     # A is A^{-1/2}
     diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
+    R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
     
-    # Make the partials for each block.
-    partiali <- list()
-    for(i in 1:n){
-      alphai0 <- alpha0[i]
-      xi <- X[i,]
-      alphai <- alpha[((i-1)*p + 1):(i*p)]
-      
-      # this xi is the vector xi. 
-      partiali[[i]] <- (1/alphai0)^2*kronecker((alphai0*diag(alphai) - 
-                                                  alphai %*% t(alphai)),xi)
-    }
-    # dimension of partials is pq * np 
-    partials <- purrr::reduce(partiali, cbind)
+    partials <- calculate_partials(alpha, alpha0, n, p, X)
+    
+
     
     # Save V inv 
     # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
@@ -241,12 +241,35 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id){
     esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
     
     update <- solve(hess, esteq)
-    beta.new <- beta.new - as.vector(update)
+    
+    
+    beta.new <- beta.new + .1*as.vector(update)
+    update_list <- append(update_list, list(update@x))
+    hess_list <- append(hess_list, list(hess))
+    ee_list <- append(ee_list, list(esteq))
     
     # Save to see speed of convergence
     diffs[s] <- sum((beta.new - beta.old)^2)
+    
+    
+    #print(paste0("beta ",  rep(ASV_id, each = q), " = ",beta.new))
+    # print("alpha")
+    # print(summary(alpha))
+    # print("update")
+    # print(summary(as.numeric(update)))
+    # print("beta")
+    # print(summary(beta.new))
+    # 
+    # 
+    # hist(as.numeric(update))
+    # hist(beta.new)
+    # hist(alpha)
+    
+    # Graphs to check 
+    # ggplot(data = data.frame(x = beta.old, y = beta.new, t = rep(ASV_id, each = q)), aes(x = x, y = y)) + geom_point(aes(x = x, y = y)) + geom_text(aes(label = t))
 
-    print(paste0("beta ",  rep(ASV_id, each = q), " = ",beta.new))
+    
+    
   }
   beta <- beta.new
   return(beta)
@@ -351,16 +374,28 @@ get_eta <- function(X, beta, n, p){
   unname(unlist(map( X_list, ~ as.numeric(tcrossprod(.x, beta_mat)))))
 }
 
-get_R_inv <- function(X, beta, omega, rho, D, n, p){
-  # Initialize eta 
-  eta <- get_eta(X, beta, n, p)
-  alpha <- exp(eta) 
-  alpha0 <- colSums(matrix(alpha, nrow = p))
-  
-  
+get_R_inv <- function(alpha, omega, rho, D, n, p){
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*D))
   # Use Moore-Penrose generalized inverse
   R_invs <- map(Rs, ginv)
   R_inv <- bdiag(R_invs)
+}
+
+
+calculate_partials <- function(alpha, alpha0, n, p, X){
+  # Make the partials for each block.
+  partiali <- list()
+  for(i in 1:n){
+    alphai0 <- alpha0[i]
+    xi <- X[i,]
+    alphai <- alpha[((i-1)*p + 1):(i*p)]
+    
+    # this xi is the vector xi. 
+    partiali[[i]] <- (1/alphai0)^2*kronecker((alphai0*diag(alphai) - 
+                                                alphai %*% t(alphai)),xi)
+  }
+  # dimension of partials is pq * np 
+  partials <- purrr::reduce(partiali, cbind)
+  return(partials)
 }
