@@ -12,6 +12,7 @@
 #' @examples
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
                        distance_matrix, intercept = T){
+  start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
   require(MASS)
@@ -53,6 +54,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   rho_list <- list()
   beta_list <- list()
   beta_diffs <- list()
+  resid_list <- list()
   phi_list <- list()
   update_list <- list()
   
@@ -95,14 +97,17 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
      beta_list[[count]] <- beta
      beta_diffs[[count]] <- diff
      phi_list[[count]] <- phi
+     resid_list[[count]] <- temp_res$resids
     
   }
   return(list(betas = list(beta_list),
               omegas = unlist(omega_list), 
               rhos = unlist(rho_list), 
               phis = unlist(phi_list),
-              beta_convergences = unlist(beta_diffs),
-              num_iter = count))
+              differences = unlist(beta_diffs),
+              num_iter = count, 
+              st_resid = unlist(resid_list),
+              time = Sys.time() - start.time))
 }
 
 
@@ -181,7 +186,8 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
   
   return(list(phi = phi, 
               omega = omega, 
-              rho = rho))
+              rho = rho, 
+              resids = resid*sqrt(phi)))
 }
 
 
@@ -236,14 +242,14 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     # Since we have more parameters than samples 
     # likely hessian matrix will be singular 
     # add a small diagonal lambda to hessian matrix. 
-    hess <- partials %*% V_inv %*% t(partials) + diag(rep(.001, q*p))
+    hess <-  partials %*% V_inv %*% t(partials) + diag(rep(.001, q*p))
     # GEE estimating equations/ gradient 
     esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
     
     update <- solve(hess, esteq)
     
     
-    beta.new <- beta.new + .1*as.vector(update)
+    beta.new <- beta.new + .11 * as.vector(update)
     update_list <- append(update_list, list(update@x))
     hess_list <- append(hess_list, list(hess))
     ee_list <- append(ee_list, list(esteq))

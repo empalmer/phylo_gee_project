@@ -53,47 +53,6 @@
 
 \section{Week 1}
 
-\begin{itemize}
-  \item Broad goal: Fix code.
-  \begin{todolist}
-    \item[\done] Use less filtered dataset
-    \begin{itemize}
-      \item Now at 30\% with 39 taxa.
-    \end{itemize}
-    \item[\done] Make graphs of parameter values at each iteration
-    \begin{itemize}
-      \item Did a lot of graphs, histograms and changes of betas between loops. Need to do final after changes are made.
-    \end{itemize}
-    \item[\done] Try stepwise update
-    \begin{itemize}
-      \item Using .1 as a constant. Still doesnt work, so likely a more complicated approach would not be helpful.
-    \end{itemize}
-    \item[\done] Fix problem where R inverse and others not updating in beta loop
-    \item[\done] Change R-inv function to depend on alpha instead of X and beta since already calculated.
-    \item[\done] Flip order of beta and phi loops.
-    \item[\done] Look at residuals in each iteration. (in phi step)
-    \item Keep something constant through loop and/or try using identity for R.
-    \item[\done] Try different dataset? Maybe simulated one from previous paper.
-    \begin{itemize}
-      \item Same troubles
-    \end{itemize}
-    \item Distance matrix argument to dist?
-    \item Check if phi is correct now, and see how is used
-    \item Figure out large alpha problem
-    \item Try a different covariate?
-    \item Figure out why geem code uses + instead of - on update
-    \begin{itemize}
-      \item I think + is correct. At least it converges.
-    \end{itemize}
-    \item Identify which covariate is causing the trouble.
-    \item Try removing the single OTU that seems to be contributing to problem.
-    \item
-    \item Write up algorithm for Yuan to go through? Ask to check.
-    \item Final run through before meeting of graphs and numbers
-  \end{todolist}
-\end{itemize}
-
-
 
 \subsection{Data filtering}
 Only use day 32.
@@ -953,6 +912,48 @@ Browse[1]> Q
 
 \item It looks like it is working? With +, and only 1 update each. And a small update.
 
+\item Wondering if a separate checklist and journal file would be a good idea.
+
+
+\item I THINK IT IS RUNNING!
+
+Things i did:
+
+\begin{itemize}
+  \item Change from - to +
+  \item First do phi/rho/omega loop, then ONE beta loop. With update of .1 scaled.
+  \item About a 2.5 min runtime with convergence defined as sum of absolute difference between beta values < .1. 225 iterations
+  \item
+\end{itemize}
+
+\item Try removing step update.
+
+\begin{itemize}
+  \item \begin{verbatim}
+    [1] "Iteration: 1"
+  [1] "phi = 0.939547462231508, omega  = 0.935468698041697 , rho = 3.17044241846978"
+  [1] "Beta iteration 1"
+  [1] "Difference = 731.214064026175"
+  [1] "Iteration: 2"
+  [1] "phi = 1.74415189832243e-55, omega  = 0 , rho = 363.857722495099"
+  [1] "Beta iteration 1"
+  [1] "Difference = 0"
+  \end{verbatim}
+
+  \item Try .5 Still only 2 loops.
+\end{itemize}
+
+\item Graphs:
+
+
+\item \textbf{Meeting}
+\item Check eigeenvalues of update and scalar by minimum.
+
+\item Implement line search.
+Numerical Optimization book ch 11.2 
+
+
+
 
 
 \end{itemize}
@@ -960,7 +961,7 @@ Browse[1]> Q
 
 
 
-
+F
 
 
 \end{document}
