@@ -85,12 +85,13 @@
       \item Seems the + and one loop beta fixed this?
     \end{itemize}
     \item Try a different covariate?
-    \item Figure out why geem code uses + instead of - on update
+    \item[\done] Figure out why geem code uses + instead of - on update
     \begin{itemize}
       \item I think + is correct. At least it converges.
+      \item From meeting: - is correct, but need a - in hessian so cancels out. So + if no - in hessian
     \end{itemize}
-    \item Identify which covariate is causing the trouble.
-    \item Try removing the single OTU that seems to be contributing to problem.
+    \item[\wontfix] Identify which covariate is causing the trouble.
+    \item[\wontfix] Try removing the single OTU that seems to be contributing to problem.
     \item Save everything to list correctly to look at later.
     \begin{itemize}
       \item Saving rho, omega, phi, beta, diff (abs), num iterations
@@ -120,16 +121,16 @@ Main tasks:
   \item Prepare presentation
 \end{itemize}
 
-
-
-
 \begin{todolist}
+  \item Include more taxa: more zero-inflation
   \item Try different covariates (parasite burden/antibiotics/exposure)
   \item Think about genus level analysis/ phylogenetic tree for taxonomic units
   \item Choose $\alpha$ automatically (simple line search)
   \item Make presentation
-  \item Wednesday
-
+  \item Wednesday email research update.
+  \item Calculate sandwhich variance estimators for asymptotic significance tests.
+  \item Make sure subtraction in $\phi$ is correct
+  \item Understand how Hessian is calculated and expected values equal zero.
 \end{todolist}
 
 \end{document}
