@@ -1,9 +1,9 @@
-
+library(tidyverse)
 # Load data  --------------------------------------------------------------
 # 10 percent
 # test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_10p.rds")
 # 20 percent
-# test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
+test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
 # 30 percent
 # test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_30p.rds")
 
@@ -16,25 +16,19 @@ asv_names <- test_data$asv_names
 
 
 # Run the model  ----------------------------------------------------------
-# Load model code
+# Load most recent model code
 source(here::here("R","dm_cor_gee_clean.R"))
 model_output <- dm_cor_gee(Y = dat$Y, X = group, sample_id = dat$sampleID, 
                     ASV_id = asv_names, distance_matrix = D, 
-                    max_iter = 50)
+                    max_iter = 100, tol = .1)
 # Save output
-descr <- "Model run with filter of .1 and start rho of 10"
+descr <- "F.2, rho of 1, gamma .01"
 write_rds(list(descr, results = model_output),
           file = here::here("Output",paste0("model_run",Sys.time(),".rds")))
 
 
 
-
-
-
-
 # Diagnostics: ------------------------------------------------------------
-
-library(tidyverse)
 diag_df <- data.frame(count = 1:model_output$num_iter, 
            phi  = model_output$phis, 
            rho  = model_output$rhos,
@@ -64,7 +58,7 @@ diag_df %>%
   geom_point()
 
 # residuals 
-last_resids <- model_output$st_resid[[model_output$num_iter]]
+last_resids <- model_output$st_resid[[1]][[model_output$num_iter]]
 hist(last_resids)
 summary(last_resids)
 

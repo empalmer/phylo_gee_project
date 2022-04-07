@@ -1045,5 +1045,37 @@ Stability seems to not be great. Might be finding local mins?
 
 With this last run, the last betas seem to be reasonable numbers, between -10 and 10 and roughly normally distributed, although a couple around -40 and -30
 
+Did work on data best practices: Save all test datasets so dont have to rerun code. Currently have 10, 20 and 30 percent filtering, with the one covariate.
+
+
+\subsection{Filtering of 20 percent}
+
+With rho start value of 10. Difference is 0 after 2 iterations.
+What if stronger tolerance? try diff > .01
+
+
+Should save convergence results of nls optim.
+
+Quickly add new covariate on med dataset. Then go to line search. Hopefully will help with stability?
+
+Still high value of omega, rho 11.
+
+Somewhat normally distributed betas, with some very large ones, same for residuals.
+
+Try the "larger" dataset with minus:
+Stop after first iteration: Infinite values due to infinite valued alpha or A.
+
+Seems to be really popping back between omega as 0 and 1 and rho as .05 and 1000.
+
+Back to using 30 percent
+Also note that gamma is at .05
+
+When gamma is .05 and rho is 10, ends in 3 iterations...
+
+When gamma is .1, rho 10, still get omega .9, rho small
+
+Original omega .8, rho 4
+
+Tried back to gamma of .05 and it works...
 
 \end{document}

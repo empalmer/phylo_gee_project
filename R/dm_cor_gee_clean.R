@@ -11,7 +11,8 @@
 #'
 #' @examples
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
-                       distance_matrix, intercept = T, max_iter = 100){
+                       distance_matrix, intercept = T, max_iter = 100, 
+                       tol){
   start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
@@ -61,7 +62,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   # Main loop
   count <- 0
   diff <- 100
-  while( diff > .1 & count < max_iter){
+  while( diff > tol & count < max_iter){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
@@ -94,19 +95,19 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
      #alpha_list[[count]] <- alpha
      omega_list[[count]] <- temp_res$omega
      rho_list[[count]] <- temp_res$rho
-     beta_list[[count]] <- beta
+     #beta_list[[count]] <- beta
      beta_diffs[[count]] <- diff
      phi_list[[count]] <- phi
-     resid_list[[count]] <- temp_res$resids
+     #resid_list[[count]] <- temp_res$resids
     
   }
-  return(list(betas = list(beta_list),
+  return(list(beta = list(beta),
               omegas = unlist(omega_list), 
               rhos = unlist(rho_list), 
               phis = unlist(phi_list),
               differences = unlist(beta_diffs),
               num_iter = count, 
-              st_resid = list(resid_list),
+              st_resid = list(temp_res$resids),
               time = Sys.time() - start.time))
 }
 
@@ -207,7 +208,7 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
 #' @examples
 update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
   
-  gamma <- .05
+  gamma <- .01
   
   update_list <- list()
   hess_list <- list()
@@ -364,7 +365,7 @@ get_dirichlet_cor <- function(alpha,n,p){
 #' @examples
 nls_optim <- function(resid_vec, cor_vec, D_vec){
   par <- list(omega = .5, 
-              rho = 10)
+              rho = 1)
   fun <- function(par){
     sum((resid_vec - (par[1]*cor_vec + (1 - par[1])*exp(-2*par[2]*D_vec)))^2)
   }  
