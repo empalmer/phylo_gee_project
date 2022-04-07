@@ -11,7 +11,7 @@
 #'
 #' @examples
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
-                       distance_matrix, intercept = T){
+                       distance_matrix, intercept = T, max_iter = 100){
   start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
@@ -61,7 +61,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   # Main loop
   count <- 0
   diff <- 100
-  while( diff > .1 & count < 500){
+  while( diff > .1 & count < max_iter){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
@@ -106,7 +106,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
               phis = unlist(phi_list),
               differences = unlist(beta_diffs),
               num_iter = count, 
-              st_resid = unlist(resid_list),
+              st_resid = list(resid_list),
               time = Sys.time() - start.time))
 }
 
@@ -217,7 +217,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
   diffs <- numeric(1)
   A <- Diagonal(n*p)
   for(s in 1:n_iter){
-    print(paste0("Beta iteration ", s))
+    #print(paste0("Beta iteration ", s))
     # Used for convergence criteria 
     beta.old <- beta.new
     
@@ -363,9 +363,8 @@ get_dirichlet_cor <- function(alpha,n,p){
 #'
 #' @examples
 nls_optim <- function(resid_vec, cor_vec, D_vec){
-  
   par <- list(omega = .5, 
-              rho = 1)
+              rho = 10)
   fun <- function(par){
     sum((resid_vec - (par[1]*cor_vec + (1 - par[1])*exp(-2*par[2]*D_vec)))^2)
   }  

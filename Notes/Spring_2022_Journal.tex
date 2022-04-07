@@ -974,7 +974,7 @@ Work on presenting the data analysis portion on the presentation.
 
 Today's agenda and order:
 \begin{itemize}
-  \item Re-do analysis: number 1 and 2: Increase number of taxa. Increase covariates.
+  \item Re-do analysis: number 1 and 2: Increase number of taxa.(done) Increase covariates.
   \item Probably not writing this up yet, wait for line search step. But can include the data preprocessing slide
   \item Implement and write up line search
   \item Compare results for independence, different algorithm
@@ -988,5 +988,62 @@ Creating presentation: Did we forget that the phylogenetic portion has to be pos
 Ask about how to make presentations longer, always rushed and quick. Ask for feedback.
 
 If I use minus hessian and minus it stalls out on 2nd iteration. Weird that this doesnt work?
+
+What should the initial value of rho and omega be in the nls optim? Currently always .5 and 1. Would this change results?
+
+\subsection{ Item 1 Increase number of taxa}
+Procesing and filtering, and covariate information:
+
+
+Still had to match tip labels. Using phyloseq object from Tom (in paired_data_ and ps Box folder) and tree from?
+
+Only looking at day 32
+Unfiltered day 32 has 3895 taxa across 68 samples. 98.4 percent zero entries
+
+Keep ASV if present in at least 10 \% of samples
+
+Results in 166 taxa in 68 samples. 75\% of data are zero.
+
+Covariates. 1 if NC, 0 if ND.
+
+RESULTS:
+
+\begin{verbatim}
+  [1] "Iteration: 149"
+[1] "phi = 7.98731653686342e-12, omega  = 0.997838301680261 , rho = 0.104950295482753"
+[1] "Beta iteration 1"
+[1] "Difference = 0.0998224219301233"
+\end{verbatim}
+
+So not great, and very different from previous.
+So high an omega would mean all weight is towards the compositional correlation. So low an rho means.
+
+Also had a slower run time. 20 minutes.
+
+Some interesting plots! Seems like something happens around iteration 60 that completely changes the results.
+
+\includegraphics[width=0.35\textwidth]{img/Spring_2022_Journal-c6b97817.png}
+
+\includegraphics[width=0.95\textwidth]{img/Spring_2022_Journal-8a414f07.png}
+
+
+\subsection{Initial values of rho and omega in nlsoptim}
+
+Should we use .5 and 1 or the previous iteration values?
+
+What would happen if we used .5 and 10?
+
+Seems like it makes it very unstable.
+
+Stability seems to not be great. Might be finding local mins?
+
+(Note, changing max iterations to 50)
+
+	\includegraphics[width=0.35\textwidth]{img/Spring_2022_Journal-b16835c7.png}
+	\includegraphics[width=0.35\textwidth]{img/Spring_2022_Journal-504ae687.png}
+
+
+With this last run, the last betas seem to be reasonable numbers, between -10 and 10 and roughly normally distributed, although a couple around -40 and -30
+
 
 \end{document}

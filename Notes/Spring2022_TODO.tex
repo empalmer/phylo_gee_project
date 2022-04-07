@@ -37,6 +37,9 @@
 \newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
 \hspace{-2.5pt}}
 \newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
+\newcommand{\inprogress}{\rlap{$\square$}{\large\hspace{1pt}$\bigstar$}}
+\newcommand{\focus}{\ding{222}}
+\newcommand{\order}[1]{\rlap{$\square$}{\large\hspace{1pt}(#1)}}
 
 
 \theoremstyle{definition}
@@ -122,19 +125,38 @@ Main tasks:
 
 \begin{todolist}
   \item[\done] Wednesday email research update.
-  \item Include more taxa: more zero-inflation
+  \item[\done] Include more taxa: more zero-inflation
+  \begin{itemize}
+    \item Not great results. see journal omega = .99, rho = .1
+    \item runtime of 20 min.
+  \end{itemize}
+  \item[\done] Add computation time in model.
   \item Try different covariates (parasite burden/antibiotics/exposure)
   \item Think about genus level analysis/ phylogenetic tree for taxonomic units
   \item Choose $\alpha$ automatically (simple line search)
+  \item Write up line-search steps and goals
   \item Make presentation
-  \item Wednesday email research update.
-  \item Calculate sandwhich variance estimators for asymptotic significance tests.
   \item Make sure subtraction in $\phi$ is correct
+  \item Figure out why adding the minus sign changes the code.
   \item Understand how Hessian is calculated and expected values equal zero.
   \item Run on previous dataset from original paper.
   \item Rename file with algorithm
   \item Compare to independence GEE written already geeglm?
-  \item Figure out why adding the minus sign changes the code.
-  \item Write up line-search steps and goals
+  \item Calculate sandwhich variance estimators for asymptotic significance tests.
+  \item See if new shared tree that Tom had is the same?
+  \item Add residuals to output and look at plots
+  \item[\inprogress] Change initial value to something different?
+  \begin{itemize}
+    \item change initial rho to 10. Changes results (of at least ests of rho and omega)
+    \item Try previous iterations rho and omega.
+    \item See how beta estimates change
+    \item Run code with initial value of 1 again to compare.
+  \end{itemize}
+  \item Read numerical optimization book.
+  \item Try changing the minus sign on larger dataset.
+  \item[\done] Set up automatic save outputs along with description
+  \item Try with a medium sized dataset, like prevalence of .2?
+  \item Save test datasets to files for easy loading
+  \item Only include last beta output?
 \end{todolist}
 \end{document}
