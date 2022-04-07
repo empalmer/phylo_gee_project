@@ -207,6 +207,8 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
 #' @examples
 update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
   
+  gamma <- .05
+  
   update_list <- list()
   hess_list <- list()
   ee_list <- list()
@@ -232,7 +234,6 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     partials <- calculate_partials(alpha, alpha0, n, p, X)
     
 
-    
     # Save V inv 
     # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
     # V <- 1/phi * A %*% R %*% A
@@ -242,14 +243,16 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     # Since we have more parameters than samples 
     # likely hessian matrix will be singular 
     # add a small diagonal lambda to hessian matrix. 
+    # start line search 
+    
     hess <-  partials %*% V_inv %*% t(partials) + diag(rep(.001, q*p))
-    # GEE estimating equations/ gradient 
     esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
-    
+
     update <- solve(hess, esteq)
-    
-    
-    beta.new <- beta.new + .11 * as.vector(update)
+    # GEE estimating equations/ gradient 
+    # beta+ = beta + gamma H^-1 G
+    beta.new <- beta.new + gamma * as.vector(update)
+
     update_list <- append(update_list, list(update@x))
     hess_list <- append(hess_list, list(hess))
     ee_list <- append(ee_list, list(esteq))

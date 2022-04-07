@@ -959,22 +959,34 @@ Numerical Optimization book ch 11.2
 
 Next steps (from paper)
 \begin{enumerate}
-  \item Currently 39 taxa across 48 samples, Incraese number of taxa, increase percent zero
+  \item Currently 39 taxa across 48 samples, Increase number of taxa, increase percent zero
   \item Try increasing covariates
   \item Think about genus level analysis
   \item Choose $\alpha$ more automatically (simple line search)
   \item How to test significance of $\beta$? Role of $\omega$ in this test.
   \item Simulation
 \end{enumerate}
+Start working on presentation, which should motivate and give a good todo on the way. Going over definitions of working correlation matrix, GEE equations, and update rho and beta steps. Then will include questions (3) and (5). Include line search if implemented. Data analysis results? TBD.
 
-Start working on presentation, which should motivate and give a good todo on the way.
+Goal implement the line search: (write up)
 
-Also implement the line search
+Work on presenting the data analysis portion on the presentation.
+
+Today's agenda and order:
+\begin{itemize}
+  \item Re-do analysis: number 1 and 2: Increase number of taxa. Increase covariates.
+  \item Probably not writing this up yet, wait for line search step. But can include the data preprocessing slide
+  \item Implement and write up line search
+  \item Compare results for independence, different algorithm
+  \item Calculate sandwhich estimator, idenetify significance, figure out which ASVs corresponding to.
+\end{itemize}
 
 
+\subsection{Meeting agenda:}
 Creating presentation: Did we forget that the phylogenetic portion has to be positive?
 
 Ask about how to make presentations longer, always rushed and quick. Ask for feedback.
 
+If I use minus hessian and minus it stalls out on 2nd iteration. Weird that this doesnt work?
 
 \end{document}
