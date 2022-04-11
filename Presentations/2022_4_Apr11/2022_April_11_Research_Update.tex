@@ -78,12 +78,12 @@
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Approach}
+\frametitle{Overview}
 \begin{itemize}
   %TODO
-  \item Use Generalized estimating equations to estimate regression parameters and covariance parameters for microbiome relative abundances
-  \item Assume the mean and variance follow those of the Dirichlet distribution
-  \item Assume the correlation structure between ASVs in a sample depends both on compositionality and phylogenetic similarity
+  \item Use Generalized estimating equations to estimate regression  and correlation parameters for microbiome relative abundances.
+  \item Assume the mean and variance follow those of the Dirichlet distribution.
+  \item Assume the correlation structure between ASVs in a sample depends both on compositionality and phylogenetic similarity.
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -97,7 +97,7 @@
   where $\alpha_{i0} = \sum_{j = 1}^p \alpha_{i0}$.
 
   and $\alpha_i$ are the parameters of if
-  $\mathbf{y}_i \sim \text{Dirichlet}(\alpha_1, \ldots , \alpha_p)$
+  $\mathbf{y}_i \sim \text{Dirichlet}(\alpha_{i1}, \ldots , \alpha_{ip})$
 
   \item Link function: Link covarites to $\alpha$'s:
   $$\log(\alpha_{ij}) = \mathbf{x_i}^T\boldsymbol\beta_j$$
@@ -120,16 +120,7 @@
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
-%----------------------------------------------------------------------------------------
-\begin{frame}
-\frametitle{GEE Algorithm}
-\begin{itemize}
-  \item Need to estimate $\beta, \rho, \omega$
-  \item Fisher scoring algorithm
-  \item Alternate by using current values of $\rho $ and $\omega$ (And thus $R_i$) to find $\beta$ and using current value of $\beta$ (and thus $\alpha$, $\epsilon$) to calculate $\rho, \omega$
-\end{itemize}
-\end{frame}
-%----------------------------------------------------------------------------------------
+
 
 
 \begin{frame}
@@ -155,7 +146,9 @@
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
 
+%----------------------------------------------------------------------------------------
 %----------------------------------------------------------------------------------------
 \begin{frame}
 \frametitle{GEE Equations}
@@ -180,12 +173,18 @@ The GEE equations are
 
 \end{frame}
 %----------------------------------------------------------------------------------------
-
+\begin{frame}
+\frametitle{GEE Algorithm}
+\begin{itemize}
+  \item Need to estimate $\beta, \rho, \omega$
+  \item Alternate by using current values of $\rho $ and $\omega$ (And thus $R_i$) to find $\beta$ and using current value of $\beta$ (and thus $\alpha$, $\epsilon$) to calculate $\rho, \omega$
+\end{itemize}
+\end{frame}
 %----------------------------------------------------------------------------------------
 \begin{frame}
 \frametitle{GEE Algorithm - $\rho, \omega, \phi$ step}
-
-GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and step for estimating $\beta$.
+% 
+% GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and step for estimating $\beta$.
 
 \begin{itemize}
   \item $e_{ij} = y_{ij} - \mu_{ij}$
@@ -193,6 +192,7 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
   \item $\omega, \rho$ minimize
   \[ \sum (\phi e_{ij}e_{ik} - [ \omega R_{ijk,D} + (1 - \omega) e^{-2 \rho D_{jk}}])^2  \]
   suject to $0 \leq \omega \leq 1, \rho > 0$
+  \item Use "L-BFGS-B" algorithm
   \item Given $\rho, \omega,$ working correlation $R$ is specified.
 \end{itemize}
 
@@ -202,14 +202,15 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
 
 
 %----------------------------------------------------------------------------------------
-\begin{frame}
-\frametitle{GEE Calculate $\omega, \rho$}
-\begin{itemize}
-  \item Use "L-BFGS-B" algorithm (Byrd et. al. (1995))
-  \item Option in \texttt{optim()} that allows bounds to be specified $0 \leq \omega \leq 1, \rho > 0$
-  \item This uses a limited-memory modification of the BFGS quasi-Newton method.
-\end{itemize}
-\end{frame}
+% \begin{frame}
+% \frametitle{GEE Calculate $\omega, \rho$}
+% \begin{itemize}
+%   \item Use "L-BFGS-B" algorithm (Byrd et. al. (1995))
+%   \item Option in \texttt{optim()} that allows bounds to be specified $0 \leq \omega \leq 1, \rho > 0$
+%   \item This uses a limited-memory modification of the BFGS quasi-Newton method.
+%   \item Appears that initial values of $\omega$ and $\rho$
+% \end{itemize}
+% \end{frame}
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
@@ -219,7 +220,7 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
 \[G =  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t\mathbf{V}_i^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i)\]
 \[H = - \sum_{i=1}^n \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t V_i ^{-1} \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta } + \lambda I \]
 
-\[\hat\beta^{(s +1)} = \hat\beta^{(s)} - \gamma H ^{-1} G \]
+\[\hat\beta^{(s +1)} = \hat\beta^{(s)} - \gamma H ^{-1} G \qquad 0 < \gamma \leq 1 \]
 
 % Where $0 < \gamma < 1$ is found using a line search
 
@@ -233,7 +234,7 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
   \item $H$ is or is close to singular. Add a small diagonal constant. $\lambda$
   (depending on eigenvalues of H)
   \item Appears that steps are too large, which leads to quick divergence and infinite estimates.
-  \item Currently implementing a line search algorithm. Check sum of squared GEE values and iteratively set $\gamma^{k+1} = \frac{1}{2}\gamma^k$ until there is a reduction.
+  \item  Check $|G^{(k+1)}| < |G^{(k)}|$ and iteratively set $\gamma^{k+1} = \frac{1}{2}\gamma^k$.
   %TODO
 \end{itemize}
 \end{frame}
@@ -249,7 +250,7 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
   \item Filter taxa to only include if present in 30\% of samples
   \item Use covariate of parasite/no parasite introduced
   \item Using 68 samples and 39 taxa.
-  \item Initially using data to get algorithm up and running, now transitioning to looking for results.
+  % \item Initially using data to get algorithm up and running, now transitioning to looking for results.
 \end{itemize}
 \end{frame}
 %---------------------------------------------------------
@@ -261,10 +262,21 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
   \item $\rho = 4.4$
   \item 80\% of estimated correlation is due to the compositional structure, 20\% is from phylogenetic correlation,
   \item $\beta = $
-  \item Sandwhich etimator
-  \item Include heatmap of correlations?
+% \begin{figure}[!htb]
+% 	\centering
+% 	\includegraphics[width=0.95\textwidth]{img/2022_April_11_Research_Update-e404d651.png}
+%
+% \end{figure}
 
-  \[ (X^tX)^{-1} [\sum_i(y_i - \hat\mu_i)(y_i - \hat\mu_i)^tX_i](X^tX)^{-1}\]
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.85\textwidth]{img/2022_April_11_Research_Update-d6498332.png}
+
+\end{figure}
+  % \item Sandwhich etimator
+  % \item Include heatmap of correlations?
+  %
+  % \[ (X^tX)^{-1} [\sum_i(y_i - \hat\mu_i)(y_i - \hat\mu_i)^tX_i](X^tX)^{-1}\]
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -273,11 +285,11 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Current challenges}
+\frametitle{Current challenges - High dimensionality}
 \begin{itemize}
-  \item Currently working on various numerical challenges:
+  \item Currently working on various numerical challenges likely due to high dimension of the data:
   \item When data are not filtered so strictly (eg 10\% or 20\%), algorithm would not converge or was unstable. A less strict filter results in both a larger percent zero data but also an increase in parameters.
-  \item Belieive to be due to close to singular hessian matrix.
+  \item Believe to be due to close to singular hessian matrix.
   \item Stability of estimates of $\rho, \omega$ sensitive to initial starting values of each step.
 \end{itemize}
 \end{frame}
@@ -289,7 +301,8 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
   \item Currently analysis is done on the ASV level.
   \item Could we perform analysis on the Genus level?
   \item How would we consolidate the phylogenetic tree (and calculate distances) at the Genus level?
-  \item Is this reasonable/appropriate?
+  \item How to calculate distances between different Genera?
+  \item Ideally this will help both high-dimensionality and interpretability.
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -298,16 +311,20 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
 \begin{frame}
 \frametitle{Questions \& next steps}
 \begin{enumerate}
-  \item What are covariates or groups of covariates that are more of interest?
-  \item How to calculating significance? Can use sandwhich estimator and asymptotic normality. Permutations?
+  \item Adding covariates: What are covariates or groups of covariates that are more of interest? (parasite burden, antibiotics etc.)
+  \item Hypothesis testing: How to calculate significance? Can use sandwich estimator and asymptotic normality? How do $\rho, \omega$ play a role in this test?
+  \item Simulations
+  \item How to address high dimensionality?
 \end{enumerate}
 \end{frame}
 %----------------------------------------------------------------------------------------
 
+
+
 %----------------------------------------------------------------------------------------
 \begin{frame}
 
-Thank you!
+\Huge{\centerline{Thank you!}}
 
 \end{frame}
 %----------------------------------------------------------------------------------------
