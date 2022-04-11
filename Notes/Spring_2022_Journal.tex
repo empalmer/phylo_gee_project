@@ -995,7 +995,7 @@ What should the initial value of rho and omega be in the nls optim? Currently al
 Procesing and filtering, and covariate information:
 
 
-Still had to match tip labels. Using phyloseq object from Tom (in paired_data_ and ps Box folder) and tree from?
+Still had to match tip labels. Using phyloseq object from Tom (in paireddata and ps Box folder) and tree from?
 
 Only looking at day 32
 Unfiltered day 32 has 3895 taxa across 68 samples. 98.4 percent zero entries
@@ -1077,5 +1077,36 @@ When gamma is .1, rho 10, still get omega .9, rho small
 Original omega .8, rho 4
 
 Tried back to gamma of .05 and it works...
+
+
+\subsection{Line search}
+
+$G+ > G$
+
+So we would need to calculate $G+$ using new value an $G$ for old beta values
+
+Currently just making an "old" version of literally all calculations in the gee equations.
+
+I'm confused.
+
+Stalls out on 2nd iteration...
+But actually the minus hess part doesnt make a difference here?
+Tried with
+
+Ok, but the update is identical regardless...??
+
+\subsection{Meeting}
+
+Add more aggresive constant to hessian.
+E.g. Look at eigenvalues and add a fraction of the eigenvalue. largest/1000 or soemthing
+distribution of eigenvalues.
+
+
+Would add a penalty for to account for high dimensionality.
+But do later.
+
+
+
+
 
 \end{document}

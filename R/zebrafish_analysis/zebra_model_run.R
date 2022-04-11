@@ -3,9 +3,9 @@ library(tidyverse)
 # 10 percent
 # test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_10p.rds")
 # 20 percent
-test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
+# test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
 # 30 percent
-# test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_30p.rds")
+test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_30p.rds")
 
 test_data$descr
 dat <- test_data$dat
@@ -20,7 +20,7 @@ asv_names <- test_data$asv_names
 source(here::here("R","dm_cor_gee_clean.R"))
 model_output <- dm_cor_gee(Y = dat$Y, X = group, sample_id = dat$sampleID, 
                     ASV_id = asv_names, distance_matrix = D, 
-                    max_iter = 100, tol = .1)
+                    max_iter = 200, tol = .01)
 # Save output
 descr <- "F.2, rho of 1, gamma .01"
 write_rds(list(descr, results = model_output),

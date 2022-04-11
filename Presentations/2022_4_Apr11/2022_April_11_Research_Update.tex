@@ -74,19 +74,16 @@
   \titlepage % Print the title page as the first slide
   \end{frame}
 
-  \begin{frame}
-  \frametitle{Overview} % Table of contents slide, comment this block out to remove it
-  \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
-  \end{frame}
 
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Goals}
+\frametitle{Approach}
 \begin{itemize}
-  \item Assume the mean and variance follow Dirichlet equations
-  \item Assume the correlation structure between ASVs in a sample depends on compositionality and phylogenetic similarity
-  \item Use GEEs to estimate regression parameters and covariance parameters
+  %TODO
+  \item Use Generalized estimating equations to estimate regression parameters and covariance parameters for microbiome relative abundances
+  \item Assume the mean and variance follow those of the Dirichlet distribution
+  \item Assume the correlation structure between ASVs in a sample depends both on compositionality and phylogenetic similarity
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -104,8 +101,8 @@
 
   \item Link function: Link covarites to $\alpha$'s:
   $$\log(\alpha_{ij}) = \mathbf{x_i}^T\boldsymbol\beta_j$$
-  and
-  $$\alpha_{ij} = e^{\mathbf{x_i}^T\boldsymbol\beta_j}$$
+  % and
+  % $$\alpha_{ij} = e^{\mathbf{x_i}^T\boldsymbol\beta_j}$$
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -115,10 +112,21 @@
 \begin{frame}
 \frametitle{Compositional Dirichlet Correlation}
 \begin{itemize}
-  \item Since ASVs are in relative abundances, we believe there will be a negative correlation arising from compositionality.
+  \item Since ASVs are in relative abundances, we believe there is a negative correlation arising from compositionality.
   \item Dirichlet correlation:
   for $j \neq k$
-  \[ Cor(y_{ij}, y_{ik})  = - \frac{\alpha_{ij}\alpha_{ik}}{\alpha_{i0}^2(\alpha_{i0} + 1)\sqrt{V(y_{ij})V(y_{ik})}} \]
+  \[ R_{i,D} = Cor(y_{ij}, y_{ik})  = - \frac{\alpha_{ij}\alpha_{ik}}{\alpha_{i0}^2(\alpha_{i0} + 1)\sqrt{V(y_{ij})V(y_{ik})}} \]
+  \[ V_{ij} = \frac{\alpha_{ij}(\alpha_{i0} - \alpha_{ij})}{\alpha_{i0}^2(\alpha_{i0} + 1)} \]
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{GEE Algorithm}
+\begin{itemize}
+  \item Need to estimate $\beta, \rho, \omega$
+  \item Fisher scoring algorithm
+  \item Alternate by using current values of $\rho $ and $\omega$ (And thus $R_i$) to find $\beta$ and using current value of $\beta$ (and thus $\alpha$, $\epsilon$) to calculate $\rho, \omega$
 \end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
@@ -127,12 +135,12 @@
 \begin{frame}
 \frametitle{Evolutionary Trait Correlation}
 \begin{itemize}
-  \item We borrow the idea of the evolutionary trait model (Martins and Hansen 1997) used in Microbiome data models (Xiao et al 2018)
-  \item From a phylogenetic tree, create matrix $\mathbf{D}$ where $d_{ij}$ is the distance between OTU $i$ and $j$.
+  \item We borrow the idea of the evolutionary trait model (Martins and Hansen 1997) used in microbiome data models (Xiao et al 2018)
+  \item From a phylogenetic tree, create matrix $\mathbf{D}$ where $d_{ij}$ is the distance between ASV $i$ and $j$.
   \item Use patristic distance - length of the shortest path.
-  \item Correlation between OTU $j$ and $k$ is
-  $$R_{i,ETM} = Cor(Y_{ij}, Y_{ik})  = e^{-2\rho d_{jk}}$$ Where $\rho \in (0,\infty)$ and needs to be estimated.
-\item If $\rho$ is small, $C_{jk}$ is close to 1 indicating high correlation. If $\rho$ is large, indicates no correlation.
+  \item Correlation between ASV $j$ and $k$ is
+  $$R_{i,ETM} = Cor(y_{ij}, y_{ik})  = e^{-2\rho d_{jk}}$$ Where $\rho > 0$ and needs to be estimated.
+\item If $\rho$ is small, $R_{ijk}$ is close to 1 indicating high correlation. If $\rho$ is large, indicates no correlation.
   \item Interpretation of $\rho$: depth of the phylogenetic tree where groups are formed.
 \end{itemize}
 \end{frame}
@@ -158,13 +166,12 @@ The GEE equations are
 \end{align*}
 
 \begin{itemize}
-  \item Where $\boldsymbol V_i = \frac{1}{\phi} A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$
+  \item Where $ V_i = \frac{1}{\phi} A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$
 
-  \item $A_i = V(Y_{ij})$
+  \item $A_i = diag(V(Y_{ij}))$
 
-  \item $\phi = $
 
-  \item \[ \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t  = \frac{1}{\alpha_{i0}^2} (\alpha_{i0} \text{diag}(\alpha_i) - \alpha_i \alpha_i^t)  \otimes X_i\]
+  \item $ \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t  = \frac{1}{\alpha_{i0}^2} (\alpha_{i0} \text{diag}(\alpha_i) - \alpha_i \alpha_i^t)  \otimes X_i$
 
 
 \end{itemize}
@@ -176,15 +183,15 @@ The GEE equations are
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Algorithm - $\rho, \omega, \phi$ step}
+\frametitle{GEE Algorithm - $\rho, \omega, \phi$ step}
 
 GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and step for estimating $\beta$.
 
 \begin{itemize}
   \item $e_{ij} = y_{ij} - \mu_{ij}$
-  \item $\phi = \frac{1}{\frac{1}{n*p - (p*q - 1)}\sum_{i = 1}^n \sum_{j = 1}^p e_{ij}^2}$
+  \item $\phi = \left(\frac{1}{n*p - (p*q - 1)}\sum_{i = 1}^n \sum_{j = 1}^p e_{ij}^2 \right) ^{-1}$
   \item $\omega, \rho$ minimize
-  \[ \sum (\phi e_{ij}e_{ik} - [ \omega R_{jk,D} + (1 - \omega) e^{-2 \rho D_{jk}}])^2  \]
+  \[ \sum (\phi e_{ij}e_{ik} - [ \omega R_{ijk,D} + (1 - \omega) e^{-2 \rho D_{jk}}])^2  \]
   suject to $0 \leq \omega \leq 1, \rho > 0$
   \item Given $\rho, \omega,$ working correlation $R$ is specified.
 \end{itemize}
@@ -192,40 +199,120 @@ GEE algorithm goes between steps for estimating $\rho, \omega, $ and $\phi$ and 
 \end{frame}
 %----------------------------------------------------------------------------------------
 
+
+
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Algorithm - $\beta$ step}
+\frametitle{GEE Calculate $\omega, \rho$}
+\begin{itemize}
+  \item Use "L-BFGS-B" algorithm (Byrd et. al. (1995))
+  \item Option in \texttt{optim()} that allows bounds to be specified $0 \leq \omega \leq 1, \rho > 0$
+  \item This uses a limited-memory modification of the BFGS quasi-Newton method.
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{GEE Algorithm - $\beta$ step}
 
 \[G =  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t\mathbf{V}_i^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i)\]
-\[H = - \sum_{i=1}^n \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t V_i ^{-1} \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta } + \lambda \]
+\[H = - \sum_{i=1}^n \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)^t V_i ^{-1} \frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta } + \lambda I \]
 
 \[\hat\beta^{(s +1)} = \hat\beta^{(s)} - \gamma H ^{-1} G \]
 
-Where $0 < \gamma < 1$ is calculated by line search
+% Where $0 < \gamma < 1$ is found using a line search
 
 \end{frame}
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Real data (intro)}
-a
+\frametitle{$\beta$-step considerations}
+\begin{itemize}
+  \item $H$ is or is close to singular. Add a small diagonal constant. $\lambda$
+  (depending on eigenvalues of H)
+  \item Appears that steps are too large, which leads to quick divergence and infinite estimates.
+  \item Currently implementing a line search algorithm. Check sum of squared GEE values and iteratively set $\gamma^{k+1} = \frac{1}{2}\gamma^k$ until there is a reduction.
+  %TODO
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Real data - Zebrafish data}
+\begin{itemize}
+  \item
+	\includegraphics[width=0.65\textwidth]{img/2022_April_11_Research_Update-f2887a67.png}
+  \item Use only day 32
+  \item Filter taxa to only include if present in 30\% of samples
+  \item Use covariate of parasite/no parasite introduced
+  \item Using 68 samples and 39 taxa.
+  \item Initially using data to get algorithm up and running, now transitioning to looking for results.
+\end{itemize}
 \end{frame}
 %---------------------------------------------------------
-
 %----------------------------------------------------------------------------------------
 \begin{frame}
 \frametitle{Real Data - Results}
-a
+\begin{itemize}
+  \item $\omega  = 0.79$
+  \item $\rho = 4.4$
+  \item 80\% of estimated correlation is due to the compositional structure, 20\% is from phylogenetic correlation,
+  \item $\beta = $
+  \item Sandwhich etimator
+  \item Include heatmap of correlations?
+
+  \[ (X^tX)^{-1} [\sum_i(y_i - \hat\mu_i)(y_i - \hat\mu_i)^tX_i](X^tX)^{-1}\]
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Current challenges}
+\begin{itemize}
+  \item Currently working on various numerical challenges:
+  \item When data are not filtered so strictly (eg 10\% or 20\%), algorithm would not converge or was unstable. A less strict filter results in both a larger percent zero data but also an increase in parameters.
+  \item Belieive to be due to close to singular hessian matrix.
+  \item Stability of estimates of $\rho, \omega$ sensitive to initial starting values of each step.
+\end{itemize}
+\end{frame}
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+\begin{frame}
+\frametitle{Questions - Phylogenetic analysis}
+\begin{itemize}
+  \item Currently analysis is done on the ASV level.
+  \item Could we perform analysis on the Genus level?
+  \item How would we consolidate the phylogenetic tree (and calculate distances) at the Genus level?
+  \item Is this reasonable/appropriate?
+\end{itemize}
 \end{frame}
 %----------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------
 \begin{frame}
-\frametitle{Next steps and questions}
-a
+\frametitle{Questions \& next steps}
+\begin{enumerate}
+  \item What are covariates or groups of covariates that are more of interest?
+  \item How to calculating significance? Can use sandwhich estimator and asymptotic normality. Permutations?
+\end{enumerate}
 \end{frame}
 %----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+\begin{frame}
+
+Thank you!
+
+\end{frame}
+%----------------------------------------------------------------------------------------
+
+
 
 
 

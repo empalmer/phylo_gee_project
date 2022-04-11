@@ -146,6 +146,7 @@ dat_30 <- make_long_data(group_30, ps_filter_30)
 
 descr = "filtered at 30p, nc/nd covariate"
 write_rds(list(descr = descr, 
+               ps = ps_filter_30,
                D = D_30, 
                group = group_30, 
                dat = dat_30, 
