@@ -58,6 +58,8 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   resid_list <- list()
   phi_list <- list()
   update_list <- list()
+  G_list <- list()
+  G_new_list <- list()
   
   # Main loop
   count <- 0
@@ -81,9 +83,10 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
     # Depends on "fixed" values of rho, omega and phi, 
     # Which are used to make R_inv 
     beta.old <- beta
-    beta <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
+    vals <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
                         phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id,
                         rho, omega, D = distance_matrix)
+    beta <- vals$beta
   
     
     
@@ -98,6 +101,8 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
      #beta_list[[count]] <- beta
      beta_diffs[[count]] <- diff
      phi_list[[count]] <- phi
+     G_list[[count]] <- vals$G
+     G_new_list[[count]] <- vals$G_new
      #resid_list[[count]] <- temp_res$resids
     
   }
@@ -108,7 +113,10 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
               differences = unlist(beta_diffs),
               num_iter = count, 
               st_resid = list(temp_res$resids),
-              time = Sys.time() - start.time))
+              time = Sys.time() - start.time,
+              G = unlist(G_list), 
+              G_new = unlist(G_new_list)
+              ))
 }
 
 
@@ -140,6 +148,11 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
   # We use the residuals as the responses for the NLS regression
   resid <- diag(A %*% Diagonal(x = Y - mu))
   
+  # Overdispersion 
+  # phi = 1/(sum sum r^2)/(N-p)
+  # sum of squared residuals 
+  phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
+  
   #print("unstandardized residuals")
   #print( summary(as.numeric(resid)))
   
@@ -155,10 +168,7 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
   cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
   
   
-  # Overdispersion 
-  # phi = 1/(sum sum r^2)/(N-p)
-  # sum of squared residuals 
-  phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
+
 
   #print("standardized residuals")
   #print(summary(resid*phi))
@@ -209,126 +219,96 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
 update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
   
   # For line search
-  # In the first iteration it will become 1.
-  #gamma <- .25
+  # In the first iteration it will become .25
+  gamma <- .2
   
   # update_list <- list()
   # hess_list <- list()
   # ee_list <- list()
   
-  beta.new <- beta
-  diffs <- numeric(1)
-  A <- Diagonal(n*p)
-  A_old <- Diagonal(n*p)
-  
-  # Calculate first old Gk+
-  # for old ones
-  # eta_old <- get_eta(X, beta, n, p)
-  # alpha_old <- exp(eta_old) 
-  # alpha0_old <- colSums(matrix(alpha_old, nrow = p))
-  # mu_old <-  alpha_old / rep(alpha0_old, each = p)
-  # diag(A_old) <- sqrt(1/var_dirichlet(alpha_old,n,p))
-  # R_inv_old <- get_R_inv(alpha_old, omega, rho, D, n, p)
-  # partials_old <- calculate_partials(alpha_old, alpha0_old, n, p, X)
-  # V_inv_old <- phi * A_old %*% R_inv_old %*% A_old
-  # G_prev <- partials_old %*% V_inv_old %*% as.matrix(Y - mu_old)
-  
-  # Save dummy G_new to start loop
-  # G_new <- abs(G_prev) + 1
+  #beta.new <- beta
+  #diffs <- numeric(1)
+  # A <- Diagonal(n*p)
 
-  # while(sum(abs(G_new)) > sum(abs(G_prev))){
+  # G_new 
+  #G_init <-  calculate_equations(beta, n=n, p=p,q, Y=Y, X=X, hess = F, omega, rho, D,phi)$G
+  # Need to create some dummy values for comparisons.
+  # 
+  # Save dummy G_new to start loop
+  G_new <- 0
+  G_prev <- 0 
+  count <- 0
+  #while((count < 1 | sum(abs(G_new)) > sum(abs(G_prev))) & count < 5){
   for(s in 1:n_iter){
     #print(paste0("Beta iteration ", s))
-    
-    # gamma <- gamma/2
-    # print(paste0("Gamma: ",gamma))
+    count <- count + 1
+    #gamma <- gamma/2
+    print(paste0("Gamma: ",gamma))
     gamma <- .1
     
-    beta.old <- beta.new
-    
-    eta <- get_eta(X, beta.new, n, p)
-    # eta <- as.vector(X %*% beta.new) 
-    alpha <- exp(eta) 
-    alpha0 <- colSums(matrix(alpha, nrow = p))
-    mu <-  alpha / rep(alpha0, each = p)
-    
-    # A is A^{-1/2}
-    diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
-    R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
-    
-    partials <- calculate_partials(alpha, alpha0, n, p, X)
+    #beta.old <- beta.new
+    # 
+    # eta <- get_eta(X, beta.new, n, p)
+    # # eta <- as.vector(X %*% beta.new) 
+    # alpha <- exp(eta) 
+    # alpha0 <- colSums(matrix(alpha, nrow = p))
+    # mu <-  alpha / rep(alpha0, each = p)
+    # 
+    # # A is A^{-1/2}
+    # A <- diag(sqrt(1/var_dirichlet(alpha,n,p)))
+    # R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
+    # 
+    # partials <- calculate_partials(alpha, alpha0, n, p, X)
 
 
     # Save V inv 
     # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
     # V <- 1/phi * A %*% R %*% A
-    V_inv <- phi * A %*% R_inv %*% A
+    # V_inv <- phi * A %*% R_inv %*% A
 
+    
 
     # Since we have more parameters than samples 
     # likely hessian matrix will be singular 
     # add a small diagonal lambda to hessian matrix. 
     # start line search 
     
-    hess <-  partials %*% V_inv %*% t(partials) + diag(rep(.001, q*p))
-    esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
+    # hess <-  -partials %*% V_inv %*% t(partials) - diag(rep(.001, q*p))
+    # esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
     # G_prev <- esteq
     
-
-
-
+    eqns <- calculate_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D)
+    hess <- eqns$H
+    esteq <- eqns$G
+    G_prev <- esteq
+    
+    
+    
     update <- solve(hess, esteq)
-    # GEE estimating equations/ gradient 
     # beta+ = beta + gamma H^-1 G
+    beta_new <- beta - gamma * as.vector(update)
+  
+    G_new <- calculate_equations(beta_new,n,p,q,Y,X,hess = F,omega,rho,D)$G
     
-
-    beta.new <- beta.new + gamma * as.vector(update)
-    
-    # mislabeled, should all be new
-    # eta_old <- get_eta(X, beta.new, n, p)
-    # alpha_old <- exp(eta_old) 
-    # alpha0_old <- colSums(matrix(alpha_old, nrow = p))
-    # mu_old <-  alpha_old / rep(alpha0_old, each = p)
-    # diag(A_old) <- sqrt(1/var_dirichlet(alpha_old,n,p))
-    # R_inv_old <- get_R_inv(alpha_old, omega, rho, D, n, p)
-    # partials_old <- calculate_partials(alpha_old, alpha0_old, n, p, X)
-    # V_inv_old <- phi * A_old %*% R_inv_old %*% A_old
-    # G_new <- partials_old %*% V_inv_old %*% as.matrix(Y - mu_old)
+    print(paste0("Reduction:", sum(abs(G_new)) < sum(abs(G_prev))))
     
     
-
+    print(paste0("G_new: ", sum(abs(G_new)), ", G_old: ", sum(abs(G_prev))))
     # update_list <- append(update_list, list(update@x))
     # hess_list <- append(hess_list, list(hess))
     # ee_list <- append(ee_list, list(esteq))
     
     # Save to see speed of convergence
     #diffs[s] <- sum((beta.new - beta.old)^2)
-    
-    
-    #print(paste0("beta ",  rep(ASV_id, each = q), " = ",beta.new))
-    # print("alpha")
-    # print(summary(alpha))
-    # print("update")
-    # print(summary(as.numeric(update)))
-    # print("beta")
-    # print(summary(beta.new))
-    # 
-    # 
-    # hist(as.numeric(update))
-    # hist(beta.new)
-    # hist(alpha)
-    
-    # Graphs to check 
-    # ggplot(data = data.frame(x = beta.old, y = beta.new, t = rep(ASV_id, each = q)), aes(x = x, y = y)) + geom_point(aes(x = x, y = y)) + geom_text(aes(label = t))
-
-    
-    
   }
   # print(paste0("Gk+1: ", sum(abs(esteq)), ", Gk ", sum(abs(G_prev)), ", gamma: ", gamma))
-  beta <- beta.new
+  print(count)
+  beta <- beta_new
   print("Summary of beta")
   print(summary(beta))
-  return(beta)
+  return(list(beta = beta, 
+              G = sum(abs(G_prev)), 
+              G_new = sum(abs(G_new))))
 }
 
 
@@ -456,3 +436,48 @@ calculate_partials <- function(alpha, alpha0, n, p, X){
   partials <- purrr::reduce(partiali, cbind)
   return(partials)
 }
+
+calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D){
+  H <- NULL
+
+  eta <- get_eta(X, beta, n, p)
+  alpha <- exp(eta)
+  alpha0 <- colSums(matrix(alpha, nrow = p))
+  mu <-  alpha / rep(alpha0, each = p)
+  A <- Diagonal(n*p)
+  diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
+  R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
+  partials <- calculate_partials(alpha, alpha0, n, p, X)
+  
+  
+  resid <- diag(A %*% Diagonal(x = Y - mu))
+  # Overdispersion 
+  # phi = 1/(sum sum r^2)/(N-p)
+  # sum of squared residuals 
+  phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
+  
+  # Save V inv 
+  # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
+  # V <- 1/phi * A %*% R %*% A
+  V_inv <- phi * A %*% R_inv %*% A
+  
+  
+  G <- partials %*% V_inv %*% as.matrix(Y - mu)
+  if(hess){
+
+    H <- -partials %*% V_inv %*% t(partials) 
+  
+    # examine the hessian matrix. 
+    res <- eigen(H)
+    #lambda <- max(abs(res$values))/1000
+    lambda <- .05
+
+    summary(res$values)
+    hist(res$values)
+    H <- H - diag(rep(lambda, q*p))
+  }
+  
+  return(list(G = G,
+              H = H))
+}
+

@@ -9,6 +9,7 @@
 \usepackage{geometry} % For margins
 \usepackage{amsthm} % For theorems
 \usepackage{amsmath,amsfonts} % For math
+\usepackage{mathabx}
  \geometry{
  a4paper,
  left=.75in,
@@ -39,6 +40,7 @@
 \newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
 \newcommand{\inprogress}{\rlap{$\square$}{\large\hspace{1pt}$\bigstar$}}
 \newcommand{\focus}{\ding{222}}
+\newcommand{\lastweek}{$\convolution \square $}
 \newcommand{\order}[1]{\rlap{$\square$}{\large\hspace{1pt}(#1)}}
 
 
@@ -58,26 +60,6 @@
   \item Broad goal: Fix code.
   \begin{todolist}
     \item[\done] Use less filtered dataset
-    \begin{itemize}
-      \item Now at 30\% with 39 taxa.
-    \end{itemize}
-    \item[\done] Make graphs of parameter values at each iteration
-    \begin{itemize}
-      \item Did a lot of graphs, histograms and changes of betas between loops. Need to do final after changes are made.
-    \end{itemize}
-    \item[\done] Try stepwise update
-    \begin{itemize}
-      \item Using .1 as a constant. Still doesnt work, so likely a more complicated approach would not be helpful.
-    \end{itemize}
-    \item[\done] Fix problem where R inverse and others not updating in beta loop
-    \item[\done] Change R-inv function to depend on alpha instead of X and beta since already calculated.
-    \item[\done] Flip order of beta and phi loops.
-    \item[\done] Look at residuals in each iteration. (in phi step)
-    \item Keep something constant through loop and/or try using identity for R.
-    \item[\done] Try different dataset? Maybe simulated one from previous paper.
-    \begin{itemize}
-      \item Same troubles
-    \end{itemize}
     \item Distance matrix argument to dist?
     \begin{itemize}
       \item Need both forms, so may or may not be useful
@@ -121,8 +103,6 @@ Main tasks:
 \end{itemize}
 
 
-
-
 \begin{todolist}
   \item[\done] Wednesday email research update.
   \item[\done] Include more taxa: more zero-inflation
@@ -131,28 +111,11 @@ Main tasks:
     \item runtime of 20 min.
   \end{itemize}
   \item[\done] Add computation time in model.
-  \item Try different covariates (parasite burden/antibiotics/exposure)
-  \item Think about genus level analysis/ phylogenetic tree for taxonomic units
-  \item Choose $\alpha$ automatically (simple line search)
-  \item Write up line-search steps and goals
-  \item Make presentation
-  \item Make sure subtraction in $\phi$ is correct
-  \item Figure out why adding the minus sign changes the code.
-  \item Understand how Hessian is calculated and expected values equal zero.
-  \item Run on previous dataset from original paper.
-  \item Rename file with algorithm
-  \item Compare to independence GEE written already geeglm?
-  \item Calculate sandwhich variance estimators for asymptotic significance tests.
-  \item See if new shared tree that Tom had is the same?
-  \item Add residuals to output and look at plots
-  \item[\inprogress] Change initial value to something different?
+  \item[\done] Make presentation
+  \item[\done] Figure out why adding the minus sign changes the code.
   \begin{itemize}
-    \item change initial rho to 10. Changes results (of at least ests of rho and omega)
-    \item Try previous iterations rho and omega.
-    \item See how beta estimates change
-    \item Run code with initial value of 1 again to compare.
+    \item Pretty sure this is because we are then adding or subtracting the $\lambda I$ incorrectly.
   \end{itemize}
-  \item Read numerical optimization book.
   \item[\done] Try changing the minus sign on larger dataset.
   \begin{itemize}
     \item Either immediate convergence or infinite alpha values on 1st iteration.....
@@ -161,6 +124,84 @@ Main tasks:
   \item[\done] Try with a medium sized dataset, like prevalence of .2?
   \item[\done] Save test datasets to files for easy loading
   \item[\done] Only include last beta output?
+  \item Try different covariates (parasite burden/antibiotics/exposure)
+  \item Think about genus level analysis/ phylogenetic tree for taxonomic units
+  \item Choose $\alpha$ automatically (simple line search)
+  \item Write up line-search steps and goals
+  \item Understand how Hessian is calculated and expected values equal zero.
+  \item Run on previous dataset from original paper.
+  \item Rename file with algorithm
+  \item Compare to independence GEE written already geeglm?
+  \item Calculate sandwhich variance estimators for asymptotic significance tests
+  \item See if new shared tree that Tom had is the same?
+  \item Add residuals to output and look at plots
+  \item Change initial value to something different?
+  \begin{itemize}
+    \item change initial rho to 10. Changes results (of at least ests of rho and omega)
+    \item Try previous iterations rho and omega.
+    \item See how beta estimates change
+    \item Run code with initial value of 1 again to compare.
+  \end{itemize}
+  \item Read numerical optimization book.
+
   \item Save convergence results of nls optim
+    \item Make sure subtraction in $\phi$ is correct
 \end{todolist}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%   Week 3    %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\section{Week 3}
+\begin{itemize}
+  \item General
+  \begin{todolist}
+      \item[\lastweek] Read numerical optimization book.
+      \item[\lastweek] Understand how Hessian is calculated and expected values equal zero.
+      \item[\lastweek] Run on previous dataset from original paper.
+      \item[\lastweek] Rename file with algorithm
+      \item[\done] Take pictures of meeting notes.
+      \item Figure out how to send jobs to server
+  \end{todolist}
+  \item Line search
+  \begin{todolist}
+      \item[\lastweek] Choose $\alpha$ automatically (simple line search)
+      \item[\lastweek] Write up line-search steps and goals
+      \item Add condition if infinity or NA to halve gamma
+      \item Clean up code for speed and remove redundancy.
+      \item Look at notes from meeting about (different?) conditions
+      \item Code was set up incorrectly. Fix. Shouldnt be updating betas each time, just checking.
+      \item Save sum of absolute G for each iteration.
+  \end{todolist}
+  \item Convergence
+  \begin{todolist}
+    \item[\lastweek] Save convergence results of nls optim
+    \item Change $\lambda$ to be based on eigenvalues.
+    \item Save eigenvalues and look at ratio.
+    \item Test to see difference within iterations of if starting values (eg rho = 10) give different results.
+  \end{todolist}
+  \item Correlation: Importance of $\rho, \omega$
+  \begin{todolist}
+      \item[\lastweek] Compare to independence GEE written already geeglm?
+      \item[\lastweek] Calculate sandwich variance estimators for asymptotic significance tests.
+      \item Keep $\rho$ or $\omega$ the same throughout the algorithm
+  \end{todolist}
+  \item Other
+  \begin{todolist}
+      \item[\lastweek] See if new shared tree that Tom had is the same?
+      \item[\lastweek] Try different covariates (parasite burden/antibiotics/exposure)
+      \item[\lastweek] Think about genus level analysis/ phylogenetic tree for taxonomic units
+      \item Add condition to make sure $\rho, \omega$ also converge
+      \item Email Tom with questions
+      \item Think about how hypothesis tests work
+      \item Read about GEE hypothesis tests
+  \end{todolist}
+\end{itemize}
+
+
+
+\newpage
+\section{Week 4}
+
 \end{document}

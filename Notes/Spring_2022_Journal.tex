@@ -1112,7 +1112,7 @@ But do later.
 
 \begin{itemize}
   \item Check that we are minusing instead of plusing for lambda
-  \item Check the residuals are divided by variance
+  \item Check the residuals are divided by variance (yes they are)
   \item Hypothesis test: joint or marginal. Is joint but do one by one?
   \item Overall hypothesis test?
   \item Check in with tom: Austin said we could find a node in the tree for approximately genus level, but may run in to troubles that there are a lot of ASVs in one spot
@@ -1120,6 +1120,74 @@ But do later.
   \item Look at parameter estimates if just keep omega and rho fixed.
   \item Use metabolites as response?
 \end{itemize}
+
+
+\subsection{Convergence}
+
+Testing converting the value we have to be .01 on diagonal instead of .001.
+Something weird is happening! getting negative omega values? (but very close to 0) And rho is now 400 not 4...
+And seems to be slower?
+
+How to ensure convergence of rho and omega?
+
+\subsection{Line search }
+
+\begin{itemize}
+  \item Initially use the simpler version of line search, get running then see what
+\end{itemize}
+
+Hmm, looks like calculating V_inv takes a lot of time? Speed up using tcrossprod? or crossprod?
+
+
+Somehow refactorization makes it so much slower... Figured it out. Somehow stopped using Matrix packages for large matrix multiplication and it made it slow.
+
+But also note that if gamma is .5 it works in the 30p case.
+
+Realized I'm doing this completely wrong. Dont update beta, just update G.
+
+Oh, also only have to calculate G_old once.
+
+
+Ok, think I have it sort of working. But it is not acting corretly I belieive. the G_new is so much larger than the G_original each time, so it requries $\gamma$ be almost 0, which means that the new beta is the same as the old one so then the algorithm basicaly fignishes running.
+
+Is sum of absolute values wrong? Should it be componentwise checks? So if it is true for all?
+
+
+Also note that I tried both versions of this and neither work. Ie tried the minus and the plus.
+
+Maybe the problem is more the eigenvalue on the hessian?
+
+Maybe the problem is that phi is the value for the previous beta? And phi is dependent on beta. So this fixes it for the first step, but not the rest... So then it keeps on increasing.
+
+Do i also have to do it for omega and rho?
+
+Example when gamma is set to .1
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.95\textwidth]{img/Spring_2022_Journal-468b961e.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+
+
+
+\subsection{Hessian Eigenvalues}
+
+First iteration
+\begin{verbatim}
+  Browse[1]>     summary(res$values)
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max.
+-4.70865 -2.51878 -0.77028 -1.61842 -0.01979  0.00000
+\end{verbatim}
+
+All negative: (that its negative definite) Also that one is close to zero means that it is essentially singular.
+
+
+Something about the condition number? What were we supposed to do?
+
+F.3, lambda max(eigen)/1000, 30 rep
 
 
 \end{document}
