@@ -3,25 +3,28 @@ library(tidyverse)
 # 10 percent
 # test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_10p.rds")
 # 20 percent
-test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
+#test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_20p.rds")
 # 30 percent
 #test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_1c_30p.rds")
+# flavo test: 
+test_data <- readRDS("~/Desktop/phylo_gee_project/Data/test_data/test_flavo_10p.rds")
+
 
 test_data$descr
 dat <- test_data$dat
 group <- test_data$group
 D <- test_data$D
 asv_names <- test_data$asv_names
-ps <- test_data$ps
+ps <- test_data$phy
 
 
 
 # Run the model  ----------------------------------------------------------
 # Load most recent model code
 source(here::here("R","dm_cor_gee_clean.R"))
-model_output <- dm_cor_gee(Y = dat$Y, X = group, sample_id = dat$sampleID, 
+model_output_alpha1 <- dm_cor_gee(Y = dat$Y, X = group, sample_id = dat$sampleID, 
                     ASV_id = asv_names, distance_matrix = D, 
-                    max_iter = 30, tol = .0001)
+                    max_iter = 100, tol = .0001)
 # Save output
 descr <- "F.3, lambda max(eigen)/1000, 30 rep"
 write_rds(list(descr, results = model_output),
@@ -30,24 +33,28 @@ write_rds(list(descr, results = model_output),
 
 
 
-b1 <- model_output1$beta
-b2 <- model_output2$beta
+b1 <- model_output$beta
+b2 <- model_output_alpha1$beta
 b1
 b2
 
-plot(b1[[1]],b2[[1]])
+plot(b1[[1]],b2[[1]]) + abline(lm(b2[[1]]~b1[[1]]))
 
 # Diagnostics: ------------------------------------------------------------
-diag_df <- data.frame(count = 1:model_output$num_iter, 
-           phi  = model_output$phis, 
-           rho  = model_output$rhos,
-           omega = unname(model_output$omegas), 
-           diff  = model_output$differences)
+diag_df <- data.frame(count = 1:model_output_alpha1$num_iter, 
+           phi  = model_output_alpha1$phis, 
+           rho  = model_output_alpha1$rhos,
+           omega = unname(model_output_alpha1$omegas), 
+           diff  = model_output_alpha1$differences)
+
+
+
+
 
 # GEE sum absolute value. 
 data.frame(old = model_output$G, new = model_output$G_new, x = 1:length(model_output$G)) %>% 
   pivot_longer(cols = c(old, new)) %>% 
-  ggplot(aes(x = x, y = value, color = name)) + geom_point() + geom_line()
+  ggplot(aes(x = x, y = value, color = name)) + geom_point() + geom_line() 
 
 
 # phi 
@@ -61,8 +68,6 @@ diag_df %>%
   ggplot(aes(x = count, y = omega)) + 
   geom_point()
 
-
-model_output
 
 # rho 
 diag_df %>% 

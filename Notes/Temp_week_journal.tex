@@ -1,0 +1,67 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Temp Journal }}
+%\rhead{\textbf{Temp Journal }}
+%\lhead{\textbf{Week}}
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\section{Week 4}
+
+Concern that problems are due to high dimensionality. Focus this week: Filter to one Genus/family/something and repeat.
+
+Start thinking/writing about motivations for needing/wanting to model everything at once instead of running separately.
+
+What dataset to use? Prevalence filter first?
+Going to use the 10p filtered dataset and then pick a genus.
+
+Also looking into R ways to resolve phylogenetic tree to genus level.
+Potentially group clade? https://yulab-smu.top/treedata-book/chapter6.html
+
+(Needed to add phylogenetic tree to saved rds. )
+
+
+\subsection{Meeting notes}
+
+Found bug. Ugh. Variance term was incorrect. Check things now.
+
+
+Try independence,
+Try fixed values. 
+Look at residual matrix (convert to matrix?)
+Check that entries match.
+
+
+\end{document}

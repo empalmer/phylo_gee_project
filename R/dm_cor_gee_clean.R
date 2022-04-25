@@ -147,7 +147,9 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
   ### Now update omega, rho, 
   # We use the residuals as the responses for the NLS regression
   resid <- diag(A %*% Diagonal(x = Y - mu))
+  browser()
   
+  hist(resid)
   # Overdispersion 
   # phi = 1/(sum sum r^2)/(N-p)
   # sum of squared residuals 
@@ -218,10 +220,7 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
 #' @examples
 update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
   
-  # For line search
-  # In the first iteration it will become .25
-  gamma <- .2
-  
+
   # update_list <- list()
   # hess_list <- list()
   # ee_list <- list()
@@ -243,9 +242,9 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     #print(paste0("Beta iteration ", s))
     count <- count + 1
     #gamma <- gamma/2
-    print(paste0("Gamma: ",gamma))
-    gamma <- .1
-    
+    #print(paste0("Gamma: ",gamma))
+    gamma <- 1
+    #gamma <- .05
     #beta.old <- beta.new
     # 
     # eta <- get_eta(X, beta.new, n, p)
@@ -329,7 +328,7 @@ var_dirichlet <- function(alpha,n,p){
     group_by(id) %>% 
     mutate(alpha0 = sum(alpha)) %>%
     ungroup() %>% 
-    mutate(v = (alpha*(alpha0 - alpha))/(alpha0^2*(alpha + 1))) %>% 
+    mutate(v = (alpha*(alpha0 - alpha))/(alpha0^2*(alpha0 + 1))) %>% 
     pull(v)
 }
 
@@ -392,6 +391,9 @@ get_dirichlet_cor <- function(alpha,n,p){
 nls_optim <- function(resid_vec, cor_vec, D_vec){
   par <- list(omega = .5, 
               rho = 1)
+  
+
+  
   fun <- function(par){
     sum((resid_vec - (par[1]*cor_vec + (1 - par[1])*exp(-2*par[2]*D_vec)))^2)
   }  
@@ -473,7 +475,7 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D){
     lambda <- .05
 
     summary(res$values)
-    hist(res$values)
+    #hist(res$values)
     H <- H - diag(rep(lambda, q*p))
   }
   

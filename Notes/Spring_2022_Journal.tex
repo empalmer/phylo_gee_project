@@ -1136,7 +1136,7 @@ How to ensure convergence of rho and omega?
   \item Initially use the simpler version of line search, get running then see what
 \end{itemize}
 
-Hmm, looks like calculating V_inv takes a lot of time? Speed up using tcrossprod? or crossprod?
+Hmm, looks like calculating V\_inv takes a lot of time? Speed up using tcrossprod? or crossprod?
 
 
 Somehow refactorization makes it so much slower... Figured it out. Somehow stopped using Matrix packages for large matrix multiplication and it made it slow.
@@ -1145,10 +1145,10 @@ But also note that if gamma is .5 it works in the 30p case.
 
 Realized I'm doing this completely wrong. Dont update beta, just update G.
 
-Oh, also only have to calculate G_old once.
+Oh, also only have to calculate G\_old once.
 
 
-Ok, think I have it sort of working. But it is not acting corretly I belieive. the G_new is so much larger than the G_original each time, so it requries $\gamma$ be almost 0, which means that the new beta is the same as the old one so then the algorithm basicaly fignishes running.
+Ok, think I have it sort of working. But it is not acting corretly I belieive. the G\_new is so much larger than the G\_original each time, so it requries $\gamma$ be almost 0, which means that the new beta is the same as the old one so then the algorithm basicaly fignishes running.
 
 Is sum of absolute values wrong? Should it be componentwise checks? So if it is true for all?
 
@@ -1188,6 +1188,14 @@ All negative: (that its negative definite) Also that one is close to zero means 
 Something about the condition number? What were we supposed to do?
 
 F.3, lambda max(eigen)/1000, 30 rep
+
+
+\section{Week 4}
+
+Concern that problems are due to high dimensionality. Focus this week: Filter to one Genus/family/something and repeat.
+
+Start thinking/writing about motivations for needing/wanting to model everything at once instead of running seperately.
+
 
 
 \end{document}
