@@ -12,12 +12,16 @@
 #' @examples
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
                        distance_matrix, intercept = T, max_iter = 100, 
-                       tol){
+                       tol, gamma = 1, lambda = .01, save_beta = F){
   start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
   require(MASS)
   
+
+# Initialize ----------------------------------------------------------
+
+  function_call <- match.call()
   # Set up indeces 
   # Number of subjects i = 1,...,n
   n <- length(unique(sample_id))
@@ -30,8 +34,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   if(intercept){
     X <- model.matrix(~x, data.frame(x = X))
   }
-
-
+  
   # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0. 
   beta_matrix <- matrix(0, nrow = q, ncol = p)
   # The Dirichlet link function is the log
@@ -41,82 +44,66 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   # convert matrix to vector
   beta <- as.vector(beta_matrix)
   
-  
   # Set up distance matrix
   d_jk <- distance_matrix[upper.tri(distance_matrix)]
   # Since d_jk doesnt have an i index we need to repeat it for each sample
   d_ijk <- rep(d_jk,n)
   
-  
   # Set up storage to keep track of parameter values in each iteration 
-  eta_list <- list()
-  alpha_list <- list()
-  omega_list <- list()
-  rho_list <- list()
-  beta_list <- list()
-  beta_diffs <- list()
-  resid_list <- list()
-  phi_list <- list()
-  update_list <- list()
-  G_list <- list()
-  G_new_list <- list()
-  
-  # Main loop
+  res <- list()
+
+# Main loop ---------------------------------------------------------------
   count <- 0
   diff <- 100
   while( diff > tol & count < max_iter){
     count <- count + 1
     print(paste0("Iteration: ", count))
     
-    # Step 1
-    # Update R inverse by updating omega and rho 
-    temp_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
+# Step 1: R, w, rho ---------------------------------------------------------
+    wRrho_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
                                  distance_matrix = distance_matrix,
                                  d_ijk = d_ijk,
                                  beta = beta, n = n, p = p, q = q)
-    phi <- temp_res$phi
-    rho <- temp_res$rho
-    omega <- temp_res$omega
-    
-    # Step 2
-    # Update beta loop 
+    phi <- wRrho_res$phi
+    rho <- wRrho_res$rho
+    omega <- wRrho_res$omega
+
+# Step 2: Beta  -----------------------------------------------------
     # Depends on "fixed" values of rho, omega and phi, 
     # Which are used to make R_inv 
     beta.old <- beta
     vals <- update_beta(Y = Y, X = X, beta = beta, R_inv = R_inv,
                         phi = phi, n_iter = 1, n=n, p=p, q=q, ASV_id,
-                        rho, omega, D = distance_matrix)
+                        rho, omega, D = distance_matrix, gamma = gamma, 
+                        lambda = lambda)
     beta <- vals$beta
-  
     
-    
-    # Convergence and saving details
-    diff <- sum(abs(beta.old - beta))
+# Convergence criteria and save results----------------------------------------
+    diff <- sum((beta.old - beta)^2)
     print(paste0("Difference = ", diff))
-    # Save estimates when things start working 
-    # eta_list[[count]] <- eta
-     #alpha_list[[count]] <- alpha
-     omega_list[[count]] <- temp_res$omega
-     rho_list[[count]] <- temp_res$rho
-     #beta_list[[count]] <- beta
-     beta_diffs[[count]] <- diff
-     phi_list[[count]] <- phi
-     G_list[[count]] <- vals$G
-     G_new_list[[count]] <- vals$G_new
-     #resid_list[[count]] <- temp_res$resids
     
+    # Save results that are updated each loop
+    res$omega[count] <- omega
+    res$rho[count] <- rho
+    res$diff[count] <- diff
+    res$phi[count] <- phi
+    res$G[count] <- vals$G
+    res$G_new[count] <- vals$G_new
+    if(save_beta){
+      res$betas[count] <- list(beta)
+    }
   }
-  return(list(beta = list(beta),
-              omegas = unlist(omega_list), 
-              rhos = unlist(rho_list), 
-              phis = unlist(phi_list),
-              differences = unlist(beta_diffs),
-              num_iter = count, 
-              st_resid = list(temp_res$resids),
-              time = Sys.time() - start.time,
-              G = unlist(G_list), 
-              G_new = unlist(G_new_list)
-              ))
+  
+  # Save results that are updated after last iteration.
+  res$num_iter <- count
+  res$time <- Sys.time() - start.time
+  res$function_call <- function_call
+  res$resids <- wRrho_res$st_resid
+  if(!save_beta){
+    res$beta <- beta
+  }
+  
+  return(res)
 }
 
 
@@ -132,7 +119,9 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
 #' @export
 #'
 #' @examples
-update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q){
+update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk,
+                                 beta, n, p, q){
+  # Setup calculations
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta) 
   alpha0 <- colSums(matrix(alpha, nrow = p))
@@ -141,25 +130,19 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
   
   if(any(is.infinite(diag(A))) | any(is.nan(diag(A)))) {
-    stop("Infinite values due to infinite valued alpha or A")
+    stop("Stop condition met: Infinite values from alpha or A")
   }
   
   ### Now update omega, rho, 
   # We use the residuals as the responses for the NLS regression
   resid <- diag(A %*% Diagonal(x = Y - mu))
-  browser()
   
-  hist(resid)
   # Overdispersion 
   # phi = 1/(sum sum r^2)/(N-p)
   # sum of squared residuals 
+  # Note this is the inverse of some definitions of phy 
+  # Using the original GEE paper definition
   phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
-  
-  #print("unstandardized residuals")
-  #print( summary(as.numeric(resid)))
-  
-  #hist(resid)
-  
   
   # Setup calculated residuals for nls fxn
   # Need to "flatten" so each residual in the residual matrix 
@@ -169,38 +152,24 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
     group_map(~tcrossprod(.x$resid))
   cross_resid_vec <- unlist(map(cross_resids, ~.x[upper.tri(.x)]))
   
-  
-
-
-  #print("standardized residuals")
-  #print(summary(resid*phi))
-  #hist(resid*phi)
-  
-  
   # Get dirichlet correlation part
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   cor_dirichlet_vec <- unlist(map(cor_dirichlet_list, ~.x[upper.tri(.x)]))
   
-  # standardize cross prod residuals by dividing by phi. 
-  # CHECK THIS
-  estimates <- nls_optim(cross_resid_vec*phi, cor_dirichlet_vec, d_ijk)
+  # standardize cross prod residuals by multiplying by phi. 
+  # since both are multiplied by sqrt phy. 
+  st_resid <- sqrt(phi)*resid
+  st_cross_resid <- phi*cross_resid_vec
+  estimates <- nls_optim(st_cross_resid, cor_dirichlet_vec, d_ijk)
   
   omega <- estimates[1]
   rho <- estimates[2]
   print(paste0("phi = ", phi,", omega  = ", omega, " , rho = ", rho))
   
-  # # use current values of omega and rho to create
-  # # present iteration of combined working correlation matrix. 
-  # Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*distance_matrix))
-  # 
-  # # invert using Moore-Penrose generalized inverse (solve will not work)
-  # R_invs <- map(Rs, ginv)
-  # R_inv <- bdiag(R_invs)
-  
   return(list(phi = phi, 
               omega = omega, 
               rho = rho, 
-              resids = resid*sqrt(phi)))
+              st_resid = st_resid))
 }
 
 
@@ -218,13 +187,10 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk, beta, n, p, q
 #' @export
 #'
 #' @examples
-update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho, omega, D){
+update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1,
+                        n, p, q, ASV_id, rho, omega, D, gamma, lambda){
   
 
-  # update_list <- list()
-  # hess_list <- list()
-  # ee_list <- list()
-  
   #beta.new <- beta
   #diffs <- numeric(1)
   # A <- Diagonal(n*p)
@@ -243,7 +209,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     count <- count + 1
     #gamma <- gamma/2
     #print(paste0("Gamma: ",gamma))
-    gamma <- 1
+    #gamma <- 1
     #gamma <- .05
     #beta.old <- beta.new
     # 
@@ -276,7 +242,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1, n, p, q, ASV_id, rho
     # esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
     # G_prev <- esteq
     
-    eqns <- calculate_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D)
+    eqns <- calculate_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda)
     hess <- eqns$H
     esteq <- eqns$G
     G_prev <- esteq
@@ -439,13 +405,14 @@ calculate_partials <- function(alpha, alpha0, n, p, X){
   return(partials)
 }
 
-calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D){
+calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
   H <- NULL
 
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta)
   alpha0 <- colSums(matrix(alpha, nrow = p))
   mu <-  alpha / rep(alpha0, each = p)
+  # # A is A^{-1/2} A is dirichlet variance 
   A <- Diagonal(n*p)
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
   R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
@@ -467,15 +434,12 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D){
   G <- partials %*% V_inv %*% as.matrix(Y - mu)
   if(hess){
 
-    H <- -partials %*% V_inv %*% t(partials) 
-  
     # examine the hessian matrix. 
-    res <- eigen(H)
+    H <- -partials %*% V_inv %*% t(partials) 
+    # lambda based on eigenvalues?
+    #res <- eigen(H)
     #lambda <- max(abs(res$values))/1000
-    lambda <- .05
 
-    summary(res$values)
-    #hist(res$values)
     H <- H - diag(rep(lambda, q*p))
   }
   
