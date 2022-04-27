@@ -366,6 +366,10 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
   A <- Diagonal(n*p)
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
   R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
+
+# If independence  --------------------------------------------------------
+  #R_inv <- diag(n*p)
+
   partials <- calculate_partials(alpha, alpha0, n, p, X)
   
   

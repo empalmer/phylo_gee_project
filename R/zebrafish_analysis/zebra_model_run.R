@@ -31,7 +31,7 @@ model_output <- dm_cor_gee(Y = dat$Y, X = group,
                            gamma = .1, lambda = .01, 
                            save_beta = T)
 # plot and save plots and output 
-descr <- "F.3, gamma .1,"
+descr <- "F.3, gamma .1"
 plots <- fun_diagnostics(model_output, descr)
 plots
 write_rds(list(descr = descr, results = model_output, plot = plots),
@@ -41,7 +41,7 @@ write_rds(list(descr = descr, results = model_output, plot = plots),
 beta_iteration_compare(model_output, descr)
 
 
-prev_model_dat <- readRDS("~/Desktop/phylo_gee_project/Output/model_run2022-04-27 13:54:39.rds")
+prev_model_dat[[1]]
 prev_model <- prev_model_dat$results
 
 beta_model_compare(model_output, prev_model)
