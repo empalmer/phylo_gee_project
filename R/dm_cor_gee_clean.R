@@ -189,85 +189,37 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk,
 #' @examples
 update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1,
                         n, p, q, ASV_id, rho, omega, D, gamma, lambda){
-  
-
   #beta.new <- beta
-  #diffs <- numeric(1)
-  # A <- Diagonal(n*p)
-
-  # G_new 
   #G_init <-  calculate_equations(beta, n=n, p=p,q, Y=Y, X=X, hess = F, omega, rho, D,phi)$G
-  # Need to create some dummy values for comparisons.
-  # 
-  # Save dummy G_new to start loop
-  G_new <- 0
-  G_prev <- 0 
+
+  # Save dummy G_new to start loop (LS)
+  # G_new <- 0
+  # G_prev <- 0 
   count <- 0
+  # Commented out condition for start of line search 
   #while((count < 1 | sum(abs(G_new)) > sum(abs(G_prev))) & count < 5){
+  # This is a loop but it is always just 1 iteration
   for(s in 1:n_iter){
-    #print(paste0("Beta iteration ", s))
     count <- count + 1
-    #gamma <- gamma/2
-    #print(paste0("Gamma: ",gamma))
-    #gamma <- 1
-    #gamma <- .05
     #beta.old <- beta.new
-    # 
-    # eta <- get_eta(X, beta.new, n, p)
-    # # eta <- as.vector(X %*% beta.new) 
-    # alpha <- exp(eta) 
-    # alpha0 <- colSums(matrix(alpha, nrow = p))
-    # mu <-  alpha / rep(alpha0, each = p)
-    # 
-    # # A is A^{-1/2}
-    # A <- diag(sqrt(1/var_dirichlet(alpha,n,p)))
-    # R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
-    # 
-    # partials <- calculate_partials(alpha, alpha0, n, p, X)
-
-
-    # Save V inv 
-    # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
-    # V <- 1/phi * A %*% R %*% A
-    # V_inv <- phi * A %*% R_inv %*% A
-
-    
-
-    # Since we have more parameters than samples 
-    # likely hessian matrix will be singular 
-    # add a small diagonal lambda to hessian matrix. 
-    # start line search 
-    
-    # hess <-  -partials %*% V_inv %*% t(partials) - diag(rep(.001, q*p))
-    # esteq <- partials %*% V_inv %*% as.matrix(Y - mu)
-    # G_prev <- esteq
-    
+    # Calculate Hessian and GEE values based on prev beta value
     eqns <- calculate_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda)
     hess <- eqns$H
     esteq <- eqns$G
     G_prev <- esteq
-    
-    
-    
+
     update <- solve(hess, esteq)
+    # Calculate new beta value based on 
     # beta+ = beta + gamma H^-1 G
     beta_new <- beta - gamma * as.vector(update)
   
+    # Checks that GEE eqn is reduced
     G_new <- calculate_equations(beta_new,n,p,q,Y,X,hess = F,omega,rho,D)$G
-    
     print(paste0("Reduction:", sum(abs(G_new)) < sum(abs(G_prev))))
-    
-    
     print(paste0("G_new: ", sum(abs(G_new)), ", G_old: ", sum(abs(G_prev))))
-    # update_list <- append(update_list, list(update@x))
-    # hess_list <- append(hess_list, list(hess))
-    # ee_list <- append(ee_list, list(esteq))
-    
-    # Save to see speed of convergence
-    #diffs[s] <- sum((beta.new - beta.old)^2)
+
   }
-  # print(paste0("Gk+1: ", sum(abs(esteq)), ", Gk ", sum(abs(G_prev)), ", gamma: ", gamma))
-  print(count)
+
   beta <- beta_new
   print("Summary of beta")
   print(summary(beta))
@@ -357,22 +309,21 @@ get_dirichlet_cor <- function(alpha,n,p){
 nls_optim <- function(resid_vec, cor_vec, D_vec){
   par <- list(omega = .5, 
               rho = 1)
-  
-
-  
+  # This function is the sum of squares of 
   fun <- function(par){
     sum((resid_vec - (par[1]*cor_vec + (1 - par[1])*exp(-2*par[2]*D_vec)))^2)
   }  
   
-  #estimates <- optim(par, fun)
   estimates <- optim(par, fun,  lower=c(0,0), upper= c(1, Inf),
                      method="L-BFGS-B")
-  
-  
 
   return(estimates$par)
 }
 
+
+
+
+# Helper fxn
 get_eta <- function(X, beta, n, p){
   X_list <- as.list(data.frame(t(X)))
   beta_mat <- matrix(beta, nrow = p, byrow = F)
@@ -395,7 +346,6 @@ calculate_partials <- function(alpha, alpha0, n, p, X){
     alphai0 <- alpha0[i]
     xi <- X[i,]
     alphai <- alpha[((i-1)*p + 1):(i*p)]
-    
     # this xi is the vector xi. 
     partiali[[i]] <- (1/alphai0)^2*kronecker((alphai0*diag(alphai) - 
                                                 alphai %*% t(alphai)),xi)
@@ -433,7 +383,10 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
   
   G <- partials %*% V_inv %*% as.matrix(Y - mu)
   if(hess){
-
+    # Since we have more parameters than samples 
+    # likely hessian matrix will be singular 
+    # add a small diagonal lambda to hessian matrix. 
+    # start line search 
     # examine the hessian matrix. 
     H <- -partials %*% V_inv %*% t(partials) 
     # lambda based on eigenvalues?

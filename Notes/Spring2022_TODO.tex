@@ -216,30 +216,50 @@ Main tasks:
 \section{Week 5}
 
 \begin{todolist}
-  \item Run through with bug fixed. See what goes on. Write up results
-  \item Try independence
-  \item Compare independence to geem beta values.
-  \item Try fixed values of $\omega, \rho$
+  \item[\done] Make gamma, lambda values arguments in the functions.
+  \item[\done] Save final residuals in model.
+  \item[\done] Convert initilization to one line list.
+  \item[\done] See if weird jump still happens. figure this out.
+  \begin{itemize}
+    \item Seems like jump does not exist anymore.
+  \end{itemize}
+  \item[\done] Add model call to result list
+  \item[\done] Create diagnoistics plot function
+  \begin{itemize}
+    \item Patchwork outputs
+  \end{itemize}
+  \item[\done] Clean up old code
+  \item[\done] Save beta values again and look at changes.
+  \item[\done] Run through with bug fixed. See what goes on. Write up results
+  \item[\done] Figure out a way to compare beta values
+  \begin{itemize}
+    \item Using a line plot across iterations
+  \end{itemize}
+  \item[\done] Add GEE values to plot.
+  \item[\done] Check if gamma = 1 betas are same as gamma = .1 betas
+    \begin{itemize}
+      \item They are not.
+    \end{itemize}
+  \item[\done] Figure out how to compare betas across different model runs (probably same line function?)
+  \item Think about how to do simulations, since we need to have something to check against.
   \item Try to sum up phylogenetic tree and see if there are any problems.
   \item Email Tom about summing up the phylogenetic tree
   \item Look at residual matrix (cross residuals). See if close to zero.
   \item Use data that is just random common taxa.
-  \item Convert all nls functions to matrices to make sure all entries match indeces.
-  \item Clean up old code
-  \item Think about how to do simulations, since we need to have something to check against.
-  \item Save beta values again and look at changes.
-  \item[\done] Convert initilization to one line list.
+  \item Try different covariates
   \item Consider moving functions to new files
-  \item Make gamma, lambda values arguments in the functions.
-  \item Save final residuals in model.
-  \item Figure out why flavo dataset stops in 2 iterations
-  \item See if weird jump still happens. figure this out.
-  \item Add model call to result list
-  \item[\done] Create diagnoistics plot function 
+  \item Convert all nls functions to matrices to make sure all entries match indeces.
+  \item Update roxygen skeletons for functions
+  \item Add final values of omega, rho and phi to patchwork plot
+    \item Try independence
+    \item Compare independence to geem beta values.
+    \item Try fixed values of $\omega, \rho$
+  \item Figure out why flavo + 30p dataset stops in 2 iterations
   \begin{itemize}
-    \item Patchwork outputs
+    \item Figured out where the problem occurs, but not sure why it occurs...
   \end{itemize}
-  \item Figure out a way to compare beta values
+  \item Explore convergence of optim loop.
+
 \end{todolist}
 
 \end{document}
