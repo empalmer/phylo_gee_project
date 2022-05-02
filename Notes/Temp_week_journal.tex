@@ -89,7 +89,137 @@ Vocab
 Tuesday:
 Noticed code was getting ugly and hard to navigate. Changed return values to initialize easier by just initilizeing one list that has sub lists inside it.
 
-With:
+Note: changed difference (plus convergence criteria) to be sum of square differences between beta between loop.
+
+Wednesday:
+Trying on 10p data (by accident oops). Still takes a long time.
+Does not have large gaps. Omega approaches 1.
+
+
+When running on the flavo data, it 'converges' in only 2 iterations. Also check out.
+
+Reminder:
+\begin{itemize}
+  \item $\omega = 1$ means all weight is compositional structure. If this is the case it doesnt really matter what $\rho $ is
+  \item $\omega = 0$ means all weight is phylogenetic structure.
+  \item $\rho$ close to 0 means:
+  \item $\rho$ large means:
+\end{itemize}
+
+Working on a function that outputs all diagnoistics plots. Done. Currently has phi, rho, omega, diffs. Need to add residuals information and beta information. how to visualize? Maybe a line plot with a line for each beta?
+
+Trying 30p dataset which originally had decent values for omega and p.
+Quit in 2 iterations. Omega flipped.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-8b0e2d13.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Next step: step through function with 30p.
+
+\begin{verbatim}
+  Browse[2]> beta
+ [1]  32.6820041 -35.2771786  -9.3769864   9.8059738  -6.3851386   1.6309199  -9.0146528
+ [8]   5.1724875  -7.5425704   2.6913815  -9.4761818   4.5570750  -7.8544924   3.1674555
+
+Browse[2]> as.vector(update)
+ [1] -1.252986e-27 -1.252986e-27 -2.654175e-38 -2.654175e-38 -3.051694e-40 -3.051694e-40
+ [7] -8.706320e-39 -8.706320e-39 -1.811488e-39 -1.811488e-39 -1.424226e-39 -1.424226e-39
+[13] -7.777419e-40 -7.777419e-40 -4.486093e-40 -4.486093e-40 -3.262656e-40 -3.262656e-40
+\end{verbatim}
+
+Seems like the 'update' is essentially zero.
+
+Which is because the hessian is essentially zero.
+\begin{verbatim}
+  Browse[2]> as.vector(hess)
+   [1]  -1.000000e-02  -9.860304e-46   1.007366e-76  -2.793269e-79  -2.314020e-64
+   [6]  -2.492956e-64   3.834566e-57  -3.314361e-61  -2.560319e-62  -2.595960e-62
+  [11]   1.079445e-60  -4.290110e-64  -3.059416e-64  -3.316491e-64   3.727629e-59
+  [16]  -2.020623e-63  -6.455299e-63  -6.567340e-63  -1.639493e-49  -1.639493e-49
+  [21]   1.620392e-65  -4.701085e-77   1.780107e-59  -2.344796e-60  -3.144451e-56
+\end{verbatim}
+
+But estimating equations are also basically zero.
+\begin{verbatim}
+  Browse[2]> summary(as.vector(esteq))
+      Min.    1st Qu.     Median       Mean    3rd Qu.       Max.
+-1.253e-29  0.000e+00  0.000e+00  0.000e+00  0.000e+00  1.253e-29
+\end{verbatim}
+
+Wondering if this is a step thing? Try with gamma = .1 like before. Seems like a step thing.
+With gamma .1:
+Some WEIRD behavor with beta plot... Oh, this was some weird result of the beta plotting??? (Had X axis as descrete, but now it is not. )
+
+Quick iteration seems to be a step problem.
+But betas are different
+For example on the dataset 30p, For gamma = 1 vs gamma = .1
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-9d4b1490.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+
+
+
+\subsubsection{Independence design}
+
+Try setting R to be the identity matrix.
+Only need to change line in \texttt{calculate\_equations} function.
+
+Using values of gamma = .1, 100 iterations.
+
+VERY DIFFERENT...
+Here final\_beta2 is independence, final\_beta1 is standard R.
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-b398c6f5.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Not sure what I do besides say: they are different!
+
+Try to focus on one thing at once to be able to add git commits.
+
+Shouldnt they be the same though? isnt idea that its just precision that changes? Am confused.
+
+
+I think the important next step is to test independence design against pre-made functions? like geem.
+Can i actually use another package? Since family and link are weird. Look more into GEEM.
+
+... Wait is my link wrong? Since isnt it logit? Or is it because I am linking alpha instead of mu?
+
+
+
+
+
+
+
+
+
+\subsection{Meeting}
+Bring up:
+What was the thing about the metabolomic data?
+
+
+I explored model running performance after finding the bug. Found that the model "converges" after 2 iterations now, but if step size is reduced, does not. But gives different beta values.
+
+
+\subsection{Simulations}
+
+Start simulations
+
+Idea that correlation matrix is redundant for dirichlet and we are making it not so
+
+
+
 
 
 \end{document}

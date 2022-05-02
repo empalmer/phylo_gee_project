@@ -28,7 +28,7 @@ model_output <- dm_cor_gee(Y = dat$Y, X = group,
                            ASV_id = asv_names,
                            distance_matrix = D, 
                            max_iter = 100, tol = .00001, 
-                           gamma = .1, lambda = .01, 
+                           gamma = .05, lambda = .01, 
                            save_beta = T)
 # plot and save plots and output 
 descr <- "F.3, gamma .1"
