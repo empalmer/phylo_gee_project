@@ -28,13 +28,13 @@ dim(D_sim)
 omega <- 1
 rho <- 30
 
-n <- 100
+n <- 1000
 p <- 15
 q <- 1
 
 # include intercept? 
 # X is for each sample
-X <- c(rep(0, 40), rep(1,60))
+X <- c(rep(0, 400), rep(1,600))
 # beta is for each taxa 
 beta <- c(rep(-1, 5), rep(2,10))
 
@@ -44,7 +44,9 @@ source(here::here("R","dm_cor_gee_clean.R"))
 
 eta <- get_eta(X, beta , n, p)
 alpha <- exp(eta)
-alpha0 <- rowSums(matrix(alpha, nrow = p))
+alpha
+summary(alpha)
+alpha0 <- rowSums(matrix(alpha, nrow = p, byrow = T))
 
 y_mean <- alpha/alpha0  
 
@@ -68,6 +70,16 @@ ys <- mvrnorm(1, y_mean, V )
 ys
 
 
+# Try dirichlet now. 
+y_i <- list()
+mat <- matrix(alpha, nrow = n, ncol = p, byrow = T)
+for(i in 1:1000){
+  alphai <- mat[i,]
+  y_i[[i]] <- rdirichlet(1, alphai)
+}
+
+ys <- unlist(y_i)
+
 # Standardizing: 
 # How much standardizing is needed? 
 
@@ -80,7 +92,7 @@ ys_pos <- ifelse(ys < 0, 0, ys)
 
 # Do col sums need to add to 1? 
 # What do colsums look like? 
-rowSums(matrix(ys_pos, nrow = n, ncol =p, byrow = T))
+rowSums(matrix(ys, nrow = n, ncol =p, byrow = T))
 
 
 
@@ -109,18 +121,16 @@ rowSums(matrix(ys_one, nrow = n, ncol = p, byrow = T))
 
 # Try simulation! 
 source(here::here("R","dm_cor_gee_clean.R"))
-model_output <- dm_cor_gee(Y = ys_one, X = X,
-                           sample_id = rep(1:100, each = 15), 
-                           ASV_id = rep(letters[1:15], 100),
+model_output <- dm_cor_gee(Y = ys, X = X,
+                           sample_id = rep(1:n, each = 15), 
+                           ASV_id = rep(letters[1:15], n),
                            distance_matrix = D_sim, 
                            max_iter = 20, tol = .00001, 
                            gamma = 1, lambda = .0001, 
-                           save_beta = T)
-
-
+                           save_beta = T, intercept = T)
 
 model_output$betas
-descr <- "Simulation, g=1, l = .0001"
+descr <- "Simulation, only dirichlet"
 
 
 

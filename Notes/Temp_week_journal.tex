@@ -220,6 +220,77 @@ Idea that correlation matrix is redundant for dirichlet and we are making it not
 
 
 
+\newpage
+\section{Week 6}
+
+
+Starting simulations!
+
+Need: Example distance matrix. Either from zebrafish, or an example dataset in phyloseq?
+Using Global patterns, fecal samples. Randomly select (15?) taxa from more abundant taxa. Extract distance matrix.
+
+Give some beta value. Should be for each taxa. The same? Different? Ask in email.
+
+Split X as even 0s and 1s.
+Do i set an intercept?? No?
+
+Set omega, set rho.
+
+Calculate alpha as $\log \alpha = X \beta$.
+
+Calculate $R$ from $\alpha, \rho, D, \omega$.
+
+Simulate $y \sim N(\alpha/\alpha_0, R)$
+Which shares the same mean and covariance as the model.
+but Doesnt have the same variance? or does it?
+
+Also R is covariance matrix not variance? So there is a $\sigma^2$ value?
+
+Stop getting confused about variance/ covariance/ correlation.
+
+Standardize. Ask? Calculate sum above zero etc, proportion...
+Report.
+
+UMM I think the get\_dirichlet\_cor function is the CoVARIANCE. But for R i want the VARIANCE?? Nope it is ok. Acutally calculated the correlation and it is correct. The numerator looks funny.. Wait... actually there is missing a square root! Nope it is there in the code. Everything is fine.
+
+\begin{align*}
+  Cor_D &= \frac{Cov}{\sqrt V_i \sqrt V_j}\\
+  &= -\frac{\alpha_i\alpha_j}{\alpha_0^2 (\alpha_0 + 1)} \sqrt{\frac{\alpha_0^2 (\alpha_0 + 1)}{\alpha_i(\alpha_0 - \alpha_i)}} \sqrt{\frac{\alpha_0^2 (\alpha_0 + 1)}{\alpha_j(\alpha_0 - \alpha_j)}}\\
+  &= - \sqrt{\frac{\alpha_i \alpha_j}{(\alpha_0 - \alpha_i)(\alpha_0 - \alpha_j )}}
+\end{align*}
+
+NOTE! in rho omega fun, changed matrix to byrow = T. bug? test.
+
+Hmm. Does this matter? it didnt change the beta values at all..
+
+Final beta results
+\begin{verbatim}
+  [[50]]
+ [1]   4.5424926  -2.3861832  -6.2525309   3.2004029   0.5698044  -3.6470294  -5.9934911
+ [8]   3.1636061   5.8906071  -8.1679282  -6.1703515   4.7639107  -1.6003967   0.5118927
+[15]  -6.1924151   4.6084286  -7.9448292 -10.0329420  -6.3725543   4.8713606   2.3284297
+[22]  -3.8093811  -6.1630714   4.7997512   1.6008044  -3.3514829  -6.2586418   4.6867781
+[29]  -2.6127452   0.7888159
+\end{verbatim}
+
+Want
+
+
+umm still getting infinities with this data..
+
+
+
+\subsection{Meeting}
+Run with only dirichlet instead (set omega = 1)
+
+Make sure GEE runs with just dirichlet data.
+Try also with true correltion/covariance matrix V just to get right betas.
+
+Seems like intercept term did not initialize well. Just have it be 0.
+
+CHECK that matrix colsumns has correlctly byrow = T or byrow = F in it! make sure it is right.
+
+
 
 
 \end{document}

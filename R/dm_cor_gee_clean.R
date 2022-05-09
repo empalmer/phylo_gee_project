@@ -40,7 +40,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   # The Dirichlet link function is the log
   y_means <- colMeans(matrix(Y, ncol = p))
   # Initialize the beta intercept term as ybar/ sum(ybar) = 1
-  beta_matrix[1,] <- log(y_means/sum(y_means))
+  #beta_matrix[1,] <- log(y_means/sum(y_means))
   # convert matrix to vector
   beta <- as.vector(beta_matrix)
   
@@ -60,13 +60,16 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
     print(paste0("Iteration: ", count))
     
 # Step 1: R, w, rho ---------------------------------------------------------
-    wRrho_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
-                                 distance_matrix = distance_matrix,
-                                 d_ijk = d_ijk,
-                                 beta = beta, n = n, p = p, q = q)
-    phi <- wRrho_res$phi
-    rho <- wRrho_res$rho
-    omega <- wRrho_res$omega
+    # wRrho_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
+    #                              distance_matrix = distance_matrix,
+    #                              d_ijk = d_ijk,
+    #                              beta = beta, n = n, p = p, q = q)
+    # phi <- wRrho_res$phi
+    # rho <- wRrho_res$rho
+    # omega <- wRrho_res$omega
+    omega <- 1
+    rho <- 5
+    phi <- 1
 
 # Step 2: Beta  -----------------------------------------------------
     # Depends on "fixed" values of rho, omega and phi, 
@@ -98,7 +101,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   res$num_iter <- count
   res$time <- Sys.time() - start.time
   res$function_call <- function_call
-  res$resids <- wRrho_res$st_resid
+  #res$resids <- wRrho_res$st_resid
   if(!save_beta){
     res$beta <- beta
   }
@@ -124,7 +127,7 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk,
   # Setup calculations
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta) 
-  alpha0 <- colSums(matrix(alpha, nrow = p))
+  alpha0 <- colSums(matrix(alpha, nrow = p, byrow = T))
   mu <-  alpha / rep(alpha0, each = p)
   A <- Diagonal(n*p)
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
@@ -278,7 +281,7 @@ get_dirichlet_cor <- function(alpha,n,p){
     # Dirichlet correlation is: 
     # Cor(i,j) = - 
     alpha0 <- sum(alpha_i)
-    num <- - sqrt(alpha_i %*% t(alpha_i)) 
+    num <- -sqrt(alpha_i %*% t(alpha_i)) 
     denom <- sqrt((alpha0-alpha_i) %*% t((alpha0 -alpha_i)))
     cor_i <- num/denom
     
@@ -332,7 +335,8 @@ get_eta <- function(X, beta, n, p){
 
 get_R_inv <- function(alpha, omega, rho, D, n, p){
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
-  Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*D))
+  Rs <- cor_dirichlet_list
+  #Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*D))
   # Use Moore-Penrose generalized inverse
   R_invs <- map(Rs, ginv)
   R_inv <- bdiag(R_invs)
@@ -360,10 +364,11 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
 
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta)
-  alpha0 <- colSums(matrix(alpha, nrow = p))
+  alpha0 <- colSums(matrix(alpha, nrow = p, byrow = T))
   mu <-  alpha / rep(alpha0, each = p)
   # # A is A^{-1/2} A is dirichlet variance 
   A <- Diagonal(n*p)
+  var_dirichlet(alpha,n,p)
   diag(A) <- sqrt(1/var_dirichlet(alpha,n,p))
   R_inv <- get_R_inv(alpha, omega, rho, D, n, p)
 
@@ -378,7 +383,7 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
   # phi = 1/(sum sum r^2)/(N-p)
   # sum of squared residuals 
   phi <- 1/(as.numeric(sum(resid^2)*(1/(n*p-(p*q-1)))))
-  
+
   # Save V inv 
   # reminder A is A^{-1/2}, and A^t = A (A is diagonal)
   # V <- 1/phi * A %*% R %*% A
