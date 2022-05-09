@@ -39,6 +39,7 @@ vignettes/*.pdf
 .Renviron
 
 /Articles_Books/*
+/R/geem/*
 
 *.DS_Store
 */.DS_Store
