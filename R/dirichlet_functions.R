@@ -8,7 +8,7 @@
 #'
 #' @return Matrix of variances for each sample+ASV
 #' @export
-#'
+#' 
 #' @examples
 get_dirichlet_var <- function(alpha,n,p){
   id <- rep(1:n, each = p)
