@@ -1,5 +1,23 @@
 
-calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
+#' Title
+#'
+#' @param beta 
+#' @param n 
+#' @param p 
+#' @param q 
+#' @param Y 
+#' @param X 
+#' @param hess 
+#' @param omega 
+#' @param rho 
+#' @param D 
+#' @param lambda 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_gee_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
   H <- NULL
   
   eta <- get_eta(X, beta, n, p)
@@ -53,6 +71,19 @@ calculate_equations <- function(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda){
 
 
 
+#' get_R_inv
+#'
+#' @param alpha 
+#' @param omega 
+#' @param rho 
+#' @param D 
+#' @param n 
+#' @param p 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_R_inv <- function(alpha, omega, rho, D, n, p){
   cor_dirichlet_list <- get_dirichlet_cor(alpha,n,p)
   Rs <- cor_dirichlet_list
@@ -63,6 +94,18 @@ get_R_inv <- function(alpha, omega, rho, D, n, p){
 }
 
 
+#' calculate_partials
+#'
+#' @param alpha 
+#' @param alpha0 
+#' @param n 
+#' @param p 
+#' @param X 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_partials <- function(alpha, alpha0, n, p, X){
   # Make the partials for each block.
   partiali <- list()

@@ -3,8 +3,15 @@
 #' 
 #' @param Y should be of length n*p
 #' @param X should be dimension n*q
-#' @param id should be of length n*p
 #' @param distance_matrix An object of type dist 
+#' @param sample_id 
+#' @param ASV_id 
+#' @param intercept 
+#' @param max_iter 
+#' @param tol 
+#' @param gamma 
+#' @param lambda 
+#' @param save_beta 
 #'
 #' @return
 #' @export

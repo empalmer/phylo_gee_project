@@ -1,14 +1,22 @@
-
-
-
 #' Update beta 
+#' 
+#' Inner function for updating beta each iteration using current values of rho and omega. Calculates phi and alpha. 
 #'
 #' @param Y 
-#' @param X_mat 
 #' @param beta 
 #' @param R_inv 
 #' @param phi 
 #' @param n_iter 
+#' @param X 
+#' @param n 
+#' @param p 
+#' @param q 
+#' @param ASV_id 
+#' @param rho 
+#' @param omega 
+#' @param D 
+#' @param gamma 
+#' @param lambda 
 #'
 #' @return
 #' @export
@@ -30,7 +38,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1,
     count <- count + 1
     #beta.old <- beta.new
     # Calculate Hessian and GEE values based on prev beta value
-    eqns <- calculate_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda)
+    eqns <- get_gee_equations(beta,n,p,q,Y,X,hess = T,omega,rho,D, lambda)
     hess <- eqns$H
     esteq <- eqns$G
     G_prev <- esteq

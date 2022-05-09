@@ -1,12 +1,16 @@
-
-
 #' Update rho, omega, and R inv 
 #'
 #' @param X 
 #' @param beta 
 #' @param Y 
+#' @param id 
+#' @param distance_matrix 
+#' @param d_ijk 
+#' @param n 
+#' @param p 
+#' @param q 
 #'
-#' @return
+#' @return phi , omega , rho, standardized residuals
 #' @export
 #'
 #' @examples

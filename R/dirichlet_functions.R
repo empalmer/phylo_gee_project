@@ -1,5 +1,6 @@
-
 #' Function for calculating Dirichlet variance 
+#' 
+#' Helper function
 #'
 #' @param alpha a vector of n*p alpha values 
 #' @param n a n*p vector of what sample each alpha is
@@ -18,7 +19,6 @@ get_dirichlet_var <- function(alpha,n,p){
     mutate(v = (alpha*(alpha0 - alpha))/(alpha0^2*(alpha0 + 1))) %>% 
     pull(v)
 }
-
 
 #' Calculate the formula for Dirichlet correlation
 #' 
