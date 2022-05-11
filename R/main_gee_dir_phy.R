@@ -19,7 +19,8 @@
 #' @examples
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
                        distance_matrix, intercept = T, max_iter = 100,
-                       tol, gamma = 1, lambda = .01, save_beta = F) {
+                       tol, gamma = 1, lambda = .01, save_beta = F, 
+                       only_dir_cor = F) {
   start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
@@ -28,15 +29,16 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
 
   # Source functions --------------------------------------------------------
   # Has get_eta function
-  source(here::here("helpers.R"))
+
+  source(here::here("R","helpers.R"))
   # has get_dirichlet_var and get_dirichlet-cor
-  source(here::here("dirichlet_functions.R"))
+  source(here::here("R","dirichlet_functions.R"))
   # had update_beta
-  source(here::here("update_beta.R"))
+  source(here::here("R","update_beta.R"))
   # has calculate_equations, get_R_inv, calculate_partials
-  source(here::here("gee_functions.R"))
+  source(here::here("R","gee_functions.R"))
   # has update_phi_rho_omega, nls_optim
-  source(here::here("update_phi_rho_omega.R"))
+  source(here::here("R","update_phi_rho_omega.R"))
 
   # Initialize ----------------------------------------------------------
 
@@ -69,7 +71,7 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   d_ijk <- rep(d_jk, n)
 
   # Set up storage to keep track of parameter values in each iteration
-  res <- list()
+  results <- list()
 
   # Main loop ---------------------------------------------------------------
   count <- 0
@@ -78,54 +80,61 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
     count <- count + 1
     print(paste0("Iteration: ", count))
 
-    # Step 1: R, w, rho ---------------------------------------------------------
-    # wRrho_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
-    #                              distance_matrix = distance_matrix,
-    #                              d_ijk = d_ijk,
-    #                              beta = beta, n = n, p = p, q = q)
-    # phi <- wRrho_res$phi
-    # rho <- wRrho_res$rho
-    # omega <- wRrho_res$omega
-    omega <- 1
-    rho <- 5
-    phi <- 1
 
+    # Step 1: R, w, rho ---------------------------------------------------------
+    if(!only_dir_cor){
+      wRrho_res <- update_phi_rho_omega(Y = Y, X = X, id = sample_id,
+                                        distance_matrix = distance_matrix,
+                                        d_ijk = d_ijk,
+                                        beta = beta, n = n, p = p, q = q)
+      phi <- wRrho_res$phi
+      rho <- wRrho_res$rho
+      omega <- wRrho_res$omega
+    } else{
+      omega <- 1
+      rho <- 5
+      phi <- 1
+    }
+
+    browser()
     # Step 2: Beta  -----------------------------------------------------
     # Depends on "fixed" values of rho, omega and phi,
     # Which are used to make R_inv
     beta.old <- beta
-    vals <- update_beta(
-      Y = Y, X = X, beta = beta, R_inv = R_inv,
-      phi = phi, n_iter = 1, n = n, p = p, q = q, ASV_id,
-      rho, omega, D = distance_matrix, gamma = gamma,
-      lambda = lambda
+    beta_step <- update_beta(
+      Y = Y, X = X, beta = beta,
+      ASV_id = ASV_id, n_iter = 1,
+      n = n, p = p, q = q, 
+      rho, omega,
+      D = distance_matrix, 
+      gamma = gamma, lambda = lambda
     )
-    beta <- vals$beta
+    beta <- beta_step$beta
 
     # Convergence criteria and save results----------------------------------------
     diff <- sum((beta.old - beta)^2)
     print(paste0("Difference = ", diff))
 
     # Save results that are updated each loop
-    res$omega[count] <- omega
-    res$rho[count] <- rho
-    res$diff[count] <- diff
-    res$phi[count] <- phi
-    res$G[count] <- vals$G
-    res$G_new[count] <- vals$G_new
+    results$omega[count] <- omega
+    results$rho[count] <- rho
+    results$diff[count] <- diff
+    results$phi[count] <- phi
+    results$G[count] <- beta_step$G
+    results$G_new[count] <- beta_step$G_new
     if (save_beta) {
-      res$betas[count] <- list(beta)
+      results$betas[count] <- list(beta)
     }
   }
 
   # Save results that are updated after last iteration.
-  res$num_iter <- count
-  res$time <- Sys.time() - start.time
-  res$function_call <- function_call
+  results$num_iter <- count
+  results$time <- Sys.time() - start.time
+  results$function_call <- function_call
   # res$resids <- wRrho_res$st_resid
   if (!save_beta) {
-    res$beta <- beta
+    results$beta <- beta
   }
 
-  return(res)
+  return(results)
 }

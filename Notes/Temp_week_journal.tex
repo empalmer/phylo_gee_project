@@ -291,6 +291,39 @@ Seems like intercept term did not initialize well. Just have it be 0.
 CHECK that matrix colsumns has correlctly byrow = T or byrow = F in it! make sure it is right.
 
 
+\newpage
 
+\section{Week 7}
+
+Trying to do better with version control. Did some reorganizing. See todo and commits
+
+Want to work though to make sure indeces of everything are what I'm intending.
+
+Do I make everything a dataframe with the intended index?
+
+So do we allow an intercept even when simulated with no intecept? Yes?
+
+
+
+\subsection{Dirichlet simulation}
+Found one issue that might be why it wasnt working in the meeting. Alphas were being generated for each p not each n.
+
+Comment out the wRrho_res function in meeting.
+
+Code in a way to only have dirichlet correlation.
+
+Stepping through function:
+n = 100, p = 15, phi = 1, q = 2 (adds intercept), rho = 5 (doesnt matter since omega = 1 - all dirichlet)
+
+
+Ok, ran through but still didnt work... Also the difference was (increasing???)
+
+Now step through. Since we know the 'true' alpha values, we can compare.
+
+Noticed update beta step still needed R inv. changed.
+
+iter 0: all 30 beta values 0.
+
+Seems like first step always has a better beta value. Do I have a wrong minus sign? ugh.
 
 \end{document}

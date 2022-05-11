@@ -4,14 +4,13 @@
 #'
 #' @param Y
 #' @param beta
-#' @param R_inv
+#' @param ASV_id
 #' @param phi
 #' @param n_iter
 #' @param X
 #' @param n
 #' @param p
 #' @param q
-#' @param ASV_id
 #' @param rho
 #' @param omega
 #' @param D
@@ -22,8 +21,8 @@
 #' @export
 #'
 #' @examples
-update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1,
-                        n, p, q, ASV_id, rho, omega, D, gamma, lambda) {
+update_beta <- function(Y, X, beta, ASV_id, phi, n_iter = 1,
+                        n, p, q, rho, omega, D, gamma, lambda) {
   # beta.new <- beta
   # G_init <-  calculate_equations(beta, n=n, p=p,q, Y=Y, X=X, hess = F, omega, rho, D,phi)$G
 
@@ -49,7 +48,7 @@ update_beta <- function(Y, X, beta, R_inv, phi, n_iter = 1,
     beta_new <- beta - gamma * as.vector(update)
 
     # Checks that GEE eqn is reduced
-    G_new <- calculate_equations(beta_new, n, p, q, Y, X, hess = F, omega, rho, D)$G
+    G_new <- get_gee_equations(beta_new, n, p, q, Y, X, hess = F, omega, rho, D)$G
     print(paste0("Reduction:", sum(abs(G_new)) < sum(abs(G_prev))))
     print(paste0("G_new: ", sum(abs(G_new)), ", G_old: ", sum(abs(G_prev))))
   }
