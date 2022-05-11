@@ -22,7 +22,7 @@
 #'
 #' @examples
 update_beta <- function(Y, X, beta, ASV_id, phi, n_iter = 1,
-                        n, p, q, rho, omega, D, gamma, lambda) {
+                        n, p, q, rho, omega, D, gamma, lambda, fixed, A, R_inv) {
   # beta.new <- beta
   # G_init <-  calculate_equations(beta, n=n, p=p,q, Y=Y, X=X, hess = F, omega, rho, D,phi)$G
 
@@ -37,7 +37,15 @@ update_beta <- function(Y, X, beta, ASV_id, phi, n_iter = 1,
     count <- count + 1
     # beta.old <- beta.new
     # Calculate Hessian and GEE values based on prev beta value
-    eqns <- get_gee_equations(beta, n, p, q, Y, X, hess = T, omega, rho, D, lambda)
+
+    if(!fixed){
+      eqns <- get_gee_equations(beta, n, p, q, Y, X, hess = T, omega, rho, D, lambda, fixed, ...)
+    } else{
+      eqns <- get_gee_equations(beta, n, p, q, Y, X, hess = T, omega, rho,
+                                D, lambda, fixed = fixed, A=A, R_inv = R_inv)
+    }
+    
+    
     hess <- eqns$H
     esteq <- eqns$G
     G_prev <- esteq

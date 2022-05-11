@@ -23,11 +23,29 @@ beta <- c(rep(-1, 5), rep(2, 10))
 source(here::here("R", "helpers.R"))
 source(here::here("R", "dirichlet_functions.R"))
 
+
 # True eta has no intercept included
 eta <- get_eta(X, beta, n, p)
 # log(alpha) = Xbeta
 alpha <- exp(eta)
+alpha
+# Calculate the "true" variance and correlation
+alpha0 <- rowSums(matrix(alpha, nrow = n, ncol = p, byrow = T))
+alpha0
 
+
+
+true_var <- get_dirichlet_var(alpha, n, p)
+true_var
+
+
+true_cor <- get_dirichlet_cor(alpha, n, p)
+true_cor
+
+
+true_A <- Diagonal(n*p)
+diag(true_A) <- sqrt(1/get_dirichlet_var(alpha,n,p))
+true_R_inv <- get_R_inv(alpha, omega = 0 , rho = 1, D = diag(n), n, p)
 
 # Generate Dirichlet RV ---------------------------------------------------
 
@@ -35,14 +53,20 @@ alpha <- exp(eta)
 # Need to draw n different samples, since each sample is dirichlet distributed
 # Then combine alphas to one vector.
 
-y_i <- list()
-mat <- matrix(alpha, nrow = n, ncol = p, byrow = T)
-for (i in 1:n) {
-  alphai <- mat[i, ]
-  y_i[[i]] <- rdirichlet(1, alphai)
+
+simulate_dirichlet_y <- function(alpha, n, p, seed = 1225){
+  set.seed(seed)
+  y_i <- list()
+  mat <- matrix(alpha, nrow = n, ncol = p, byrow = T)
+  for (i in 1:n) {
+    alphai <- as.vector(mat[i, ])
+    y_i[[i]] <- rdirichlet(1, alphai)
+  }
+  ys <- unlist(y_i)
+  return(ys)
 }
 
-ys <- unlist(y_i)
+ys <- simulate_dirichlet_y(alpha, n, p)
 
 
 # Run model ---------------------------------------------------------------
@@ -62,10 +86,14 @@ model_output <- dm_cor_gee(
   lambda = .0001,
   save_beta = T,
   intercept = T,
-  only_dir_cor = T
+  only_dir_cor = T, 
+  fixed = T,
+  A = true_A, 
+  R_inv = true_R_inv
 )
 
 model_output$betas
+old_betas_plus <- model_output$betas
 descr <- "Simulation, only dirichlet"
 
 

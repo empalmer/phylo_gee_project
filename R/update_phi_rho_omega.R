@@ -19,7 +19,7 @@ update_phi_rho_omega <- function(Y, X, id, distance_matrix, d_ijk,
   # Setup calculations
   eta <- get_eta(X, beta, n, p)
   alpha <- exp(eta) 
-  alpha0 <- colSums(matrix(alpha, nrow = p, byrow = T))
+  alpha0 <- rowSums(matrix(alpha, nrow = n, ncol = p, byrow = T))
   mu <-  alpha / rep(alpha0, each = p)
   A <- Diagonal(n*p)
   diag(A) <- sqrt(1/get_dirichlet_var(alpha,n,p))
