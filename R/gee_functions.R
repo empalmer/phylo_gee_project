@@ -54,6 +54,8 @@ get_gee_equations <- function(beta, n, p, q, Y, X,
   V_inv <- phi * A %*% R_inv %*% A
 
 
+  
+  
   G <- partials %*% V_inv %*% as.matrix(Y - mu)
   if (hess) {
     # Since we have more parameters than samples
@@ -99,7 +101,7 @@ get_R_inv <- function(alpha, omega, rho, D, n, p) {
   # FIXME when both kinds of correlation
   # Rs <- purrr::map(cor_dirichlet_list, ~ .x*omega + (1-omega)*exp(-2*rho*D))
   # Use Moore-Penrose generalized inverse
-  R_invs <- map(Rs, ginv)
+  R_invs <- purrr::map(Rs, MASS::ginv)
   R_inv <- bdiag(R_invs)
 }
 

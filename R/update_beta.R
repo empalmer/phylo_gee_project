@@ -50,7 +50,7 @@ update_beta <- function(Y, X, beta, ASV_id, phi, n_iter = 1,
     esteq <- eqns$G
     G_prev <- esteq
 
-    update <- solve(hess, esteq)
+    update <- Matrix::solve(hess, esteq)
     # Calculate new beta value based on
     # beta+ = beta + gamma H^-1 G
     beta_new <- beta - gamma * as.vector(update)
