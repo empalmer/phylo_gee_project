@@ -1,6 +1,7 @@
 
 # Distance matrix ---------------------------------------------------------
 # Get a distance matrix from phyloseq package
+library(phyloseq)
 data("GlobalPatterns")
 # devtools::install_github("david-barnett/microViz@0.9.1")
 library(microViz)
@@ -54,6 +55,7 @@ y_mean <- alpha / alpha0
 
 # Correlation matrix, based on alpha, n, p, rho, omega
 library(Matrix)
+library(tidyverse)
 # dirichlet correlation (block diagonal of different blocks for each sample)
 cor_dirichlet_list <- get_dirichlet_cor(alpha, n, p)
 Rs <- purrr::map(cor_dirichlet_list, ~ .x * omega + (1 - omega) * exp(-2 * rho * D_sim))
@@ -64,7 +66,7 @@ R <- bdiag(Rs)
 # Need to calculate variance too since multivatite normal needs covariance not correlation
 # 1/sqrt(Var_D)
 A <- Diagonal(n * p)
-diag(A) <- sqrt(var_dirichlet(alpha, n, p))
+diag(A) <- sqrt(get_dirichlet_var(alpha, n, p))
 # sqrt(Var_D) * R * (sqrt(Var_D))
 V <- A %*% R %*% A
 

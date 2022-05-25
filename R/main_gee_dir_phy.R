@@ -20,13 +20,14 @@
 dm_cor_gee <- function(Y, X, sample_id, ASV_id,
                        distance_matrix, intercept = T, max_iter = 100,
                        tol, gamma = 1, lambda = .01, save_beta = F, 
-                       only_dir_cor = F, fixed = F, A, R_inv, ...) {
+                       only_dir_cor = F, fixed = F, A, R_inv, 
+                       init_beta,...) {
   start.time <- Sys.time()
   require(tidyverse)
   require(Matrix)
   require(MASS)
 
-
+  
   # Source functions --------------------------------------------------------
   # Has get_eta function
 
@@ -57,14 +58,15 @@ dm_cor_gee <- function(Y, X, sample_id, ASV_id,
   }
 
   # Initialize beta column. Intercept beta0 is the mean of the Y, and the rest are 0.
-  beta_matrix <- matrix(0, nrow = q, ncol = p)
+  #beta_matrix <- matrix(0, nrow = q, ncol = p)
   # The Dirichlet link function is the log
   # y_means <- colMeans(matrix(Y, ncol = p))
   # Initialize the beta intercept term as ybar/ sum(ybar) = 1
   # beta_matrix[1,] <- log(y_means/sum(y_means))
   # convert matrix to vector
-  beta <- as.vector(beta_matrix)
-
+  #beta <- as.vector(beta_matrix)
+  beta <- init_beta
+  
   # Set up distance matrix
   d_jk <- distance_matrix[upper.tri(distance_matrix)]
   # Since d_jk doesnt have an i index we need to repeat it for each sample

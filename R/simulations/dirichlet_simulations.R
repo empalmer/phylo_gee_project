@@ -67,6 +67,10 @@ simulate_dirichlet_y <- function(alpha, n, p, seed = 1225){
 
 ys <- simulate_dirichlet_y(alpha, n, p)
 
+# how close is the sample variance to true variance?
+var(ys[1:15])
+true_var[1]
+
 
 # True GEE eqn values -----------------------------------------------------
 X <- model.matrix(~x, data.frame(x = X))

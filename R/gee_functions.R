@@ -123,7 +123,11 @@ calculate_partials <- function(alpha, alpha0, n, p, X) {
   partiali <- list()
   for (i in 1:n) {
     alphai0 <- alpha0[i]
-    xi <- X[i, ]
+    if(is.vector(X)){
+      xi <- X[i]
+    }else{
+      xi <- X[i, ]
+    }
     alphai <- alpha[((i - 1) * p + 1):(i * p)]
     # this xi is the vector xi.
     partiali[[i]] <- (1 / alphai0)^2 * kronecker((alphai0 * diag(alphai) -
