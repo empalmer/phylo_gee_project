@@ -163,7 +163,7 @@ q <- 2
 
 # Set betas (need one for each p)
 beta <- rep(3, 15)
-#beta <- c(rep(-1, 5), rep(2, 10))
+beta <- c(rep(-1, 5), rep(2, 10))
 # add true 0 intercept
 beta <- as.vector(t(matrix(c( rep(0, p),beta), nrow = p)))
 # If intercept: 
@@ -185,14 +185,14 @@ alpha0 <- rowSums(matrix(alpha, nrow = n, ncol = p, byrow = T))
 ys <- simulate_dirichlet_y(alpha, n, p)
 
 # if initilizing beta as 0 to make algorithm figure it out
-beta <- rep(0, p*q)
+#beta <- rep(0, p*q)
 
 update_list <- list()
 g_list <- list()
 beta_list <- list()
 diff_list <- list()
 phi_list <- list()
-n_rep <- 20
+n_rep <- 100
 for(i in 1:n_rep){
   beta_list[[i]] <- beta
   eta <- as.vector(X %*% beta)
@@ -240,9 +240,10 @@ betas <- as.data.frame(beta_list)
 colnames(betas) <- 1:n_rep
 betas %>% 
   mutate(type = rep(c('x'), num_beta), 
-         id = factor(1:(num_beta))) %>% 
+         id = factor(1:(num_beta)), 
+         type = factor(rep(c("int","x"), p))) %>% 
   pivot_longer(1:n_rep, names_to = "iteration") %>% 
-  ggplot(aes(x = as.numeric(iteration), y = value, group = id)) +
+  ggplot(aes(x = as.numeric(iteration), y = value, group = id, linetype = type)) +
   geom_line() + 
   labs(x = "iteration", y = "beta")
 
