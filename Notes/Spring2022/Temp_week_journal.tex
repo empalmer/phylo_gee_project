@@ -308,7 +308,7 @@ So do we allow an intercept even when simulated with no intecept? Yes?
 \subsection{Dirichlet simulation}
 Found one issue that might be why it wasnt working in the meeting. Alphas were being generated for each p not each n.
 
-Comment out the wRrho_res function in meeting.
+Comment out the wRrhores function in meeting.
 
 Code in a way to only have dirichlet correlation.
 
@@ -325,5 +325,158 @@ Noticed update beta step still needed R inv. changed.
 iter 0: all 30 beta values 0.
 
 Seems like first step always has a better beta value. Do I have a wrong minus sign? ugh.
+
+
+Ok, after "fixing" the X matrix:
+
+try with no intercept:
+Betas only -2
+If run for 20 iterations, get error in SVD error.... What is this caused by? why? Probably should add that diagonal? But since we have way more samples shouldnt be a problem right? Ok, upped n to 500 with no error.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-05cc264a.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+OK, now try some betas as 2 and some as -1
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-5e490a3d.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+
+
+OK
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-5e490a3d.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+
+WITH INTERCEPT
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-f796f9af.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+\subsection{Research Meeting}
+
+\begin{itemize}
+  \item Find out why didnt work this time
+  \item Dirichlet matrix will be nonsingular so still include diagonal
+  \item Rerun, and push to github changes... do the freakin versino control!
+  \item Comment that variance structure is just dirichlet, but ok, since phylogenetic correlation is just correlation, not variance
+  \item Check that this is correlation! right? not covariance. Probably correct since diagonal is 1.
+  \item Phi shoudl be close to 1 since phi is 1 for dirichlet
+  \item Literature review of hypothesis test
+\end{itemize}
+
+
+
+Ok, working for 0 and 3... (well if we have it start at 0 and 3)
+
+
+
+Starts at 0 and 3:
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-51eb1ed3.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Starts all at 0
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-33c02f24.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Is this the number of iterations?
+Try up to 100
+Ok, this is all 3, and 0 intercept...
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-b735531a.png}
+	\caption{}
+	\label{}
+\end{figure}
+I dont even know...
+
+Remove intercept?
+All 3 with no intercept, initialize at 0
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-b33358ce.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Start with correct values,
+Stays at correct values
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-24c232f1.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+Wondering if actually wouldnt work for every otu to have a positive beta since we have negative correlation.
+ add lambda to hessian:
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.35\textwidth]{img/Temp_week_journal-8e219e90.png}
+	\caption{}
+	\label{}
+\end{figure}
+
+
+TODO: Switch from dirichlet and see if it works normally!!!! Just like normal or poisson or something...
+
+
+
+\section{Week 10}
+
+Todo:
+
+Get a standard GEE working:
+Ex: normal distribution? poisson?
+
+\section{Meeting}
+
+\begin{itemize}
+  \item Identifiabilitly problem:
+  \item A shift of betas doesnt affect mu....
+  \item Try with continuous X
+  \item Maybe try $logit(\frac{\alpha_{ik}}{\alpha_{i0}})$
+  \item Model the first k-1 then...
+  \item Calculate partials, V, mean diff on true model, compare to estimator. print out those values.
+  \item Suspician is that beta values can shift and wont change GEE values, will be close to 0.
+  \item partials: $diag(mu_i) - mu_i mu_i^t$
+  \item could also constrain beta, to be 0.
+  \item G is derivative of quasiliklihood function. can have:
+  \[-q(\beta) + ]lambda (\sum ]beta_k)^2 \]
+  \item add derivative of this penalty to $G$.
+  \item and add second derivative to hessian, fix.
+  \item $\lambda$ really big.
+  \item quasi penalty: $\lambda \beta^t 1 1^t \beta$
+  \item First dirivitive: $11^t \beta$
+  \item second derivative: $2\lambda 1 1^t$
+  \item Simulate with true sum is zero, and tru sum is not zero (betas)
+  \item how does shift in parametrs change variance
+  \item
+\end{itemize}
+
 
 \end{document}
