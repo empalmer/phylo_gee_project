@@ -1,0 +1,79 @@
+\documentclass[10pt]{article}
+\usepackage{sectsty}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+
+% For checklist
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+\hspace{-2.5pt}}
+
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Summer 2022 Notes}}
+%\rhead{\textbf{Summer Notes}}
+%\lhead{\textbf{Week}}
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corrolary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\section{June 16}
+
+
+
+\subsection{To-Do}
+\begin{todolist}
+  \item Writeup current research.
+  \item Create bibliography
+  \item Make current document of all definitions
+  \item Writeup dirichlet properties
+  \item Citations
+  \item Biological definitions
+  \item GEE notation
+  \item Writeup of identifiability issue
+\end{todolist}
+
+
+
+
+
+
+\newpage
+\section{June 17 - Meeting}
+
+This week I focused on taking a step back and writing up current research, make a place for all definitions used in one place.
+
+
+\end{document}

@@ -1,0 +1,105 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage[euler]{textgreek}
+\usepackage{fancyhdr} % For header
+\usepackage{mdframed} % for boxes
+\usepackage{geometry} % For margins
+\usepackage{amsthm} % For theorems
+\usepackage{amsmath,amsfonts} % For math
+ \geometry{
+ a4paper,
+ left=.75in,
+ right=.75in,
+ top=1in,
+ }
+ \newcommand{\bb}{\mathbb}
+ \usepackage{sectsty}
+\subsectionfont{\large\underline}
+\fancyhf{}
+\renewcommand\thesection{}
+\renewcommand\thesubsection{}
+\fancyhead[L]{\textbf{\leftmark\rightmark}}
+\fancyhead[R]{\textbf{Summer writeup of research}}
+
+\rfoot{Page \thepage}
+\pagestyle{fancy}
+
+\theoremstyle{definition}
+\newtheorem*{definition}{Definition}
+\newtheorem*{example}{Example}
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\begin{document}
+
+\tableofcontents
+
+\newpage
+
+\section{Motivation}
+
+Start writing what might be a good introduction for any paper or chapter.
+
+Include citations!
+
+\section{definitions}
+
+\begin{itemize}
+  \item ASV
+  \item OTU
+  \item Zero-Inflation
+  \item Phylogenetic tree
+  \item Compositional
+  \item Covariates/variables
+\end{itemize}
+
+\section{Notation}
+
+\begin{itemize}
+  \item Number of samples: $n$
+  \item Sample index: $i: i = 1, \ldots, n$
+  \item Number of ASVs: $k$
+  \item ASV index: $j: j = 1, \ldots , k$
+  \item Number of covariates: $q$. Note that $q$ does not include the intercept.
+  \item Covariate index: $k: k = 1, \ldots , q$
+
+  \item Responses: Transformed counts into relative abundances.
+
+  Note that an alternative transformation to relative abundance might be good. %ADDCITE
+
+   \begin{align*}
+     y_{ijk}
+   \end{align*}
+
+   \item Design matrix $X$:
+
+   \item Parameter vector $\beta$
+
+
+
+\end{itemize}
+
+
+
+
+
+\section{Dirichlet ideas }
+
+\subsection{Dirichlet variance }
+
+\subsection{Dirichlet covariance }
+
+\subsection{Dirichlet correlation }
+
+\section{GEE ideas}
+
+(include definitions of all )
+
+
+
+\end{document}
