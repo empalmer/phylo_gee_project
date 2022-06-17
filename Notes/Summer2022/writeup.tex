@@ -9,6 +9,7 @@
 \usepackage{geometry} % For margins
 \usepackage{amsthm} % For theorems
 \usepackage{amsmath,amsfonts} % For math
+\usepackage{mathtools}
  \geometry{
  a4paper,
  left=.75in,
@@ -47,7 +48,7 @@ Start writing what might be a good introduction for any paper or chapter.
 
 Include citations!
 
-\section{definitions}
+\section{Definitions}
 
 \begin{itemize}
   \item ASV
@@ -55,7 +56,7 @@ Include citations!
   \item Zero-Inflation
   \item Phylogenetic tree
   \item Compositional
-  \item Covariates/variables
+  \item Covariates/variables/ coefficients
 \end{itemize}
 
 \section{Notation}
@@ -73,12 +74,56 @@ Include citations!
   Note that an alternative transformation to relative abundance might be good. %ADDCITE
 
    \begin{align*}
-     y_{ijk}
+     y_{ij}\\
+     \textbf{y}_{np \times 1} &= \begin{pmatrix} y_{i = 1, j = 1} \\\vdots \\ y_{i = 1, j = p}\\ \vdots \\ y_{i = n, j = 1} \\ \vdots  \\y_{i = n, j = p}\end{pmatrix}
    \end{align*}
 
-   \item Design matrix $X$:
+   \item
 
-   \item Parameter vector $\beta$
+   Design matrix $\mathbf{x}$ ('little x').
+
+\begin{align*}
+  \mathbf{x} &= \begin{pmatrix}x_{i=1, k = 1} & \cdots & x_{i = 1, k = q}\\
+\vdots & \ddots & \\
+x_{i = n, k = 1} & \cdots & x_{i = n, k = q}\end{pmatrix}
+\end{align*}
+
+
+    Since we don't have coefficient values measured on each ASV, they are only measured on each sample. Thus $x_{ij} = x_{i}$ for all $j = 1, \ldots , p$. Then we convert to design matrix big X:
+
+   Design matrix $X$:
+
+   \begin{align*}
+     X &= x \otimes I_p\\
+     &= \begin{pmatrix} x_{i = 1, k = 1} & 0 & \cdots & 0 \overbrace{\cdots}^p & 0  & x_{i = 1, k = q} & 0 & \cdots & 0 \\ 0 & x_{i = 1, k = 1} \\ x_{i = 2, k = 1} & 0 & \cdots & x_{i = 2, k = 2} & \cdots & x_{i = 2, k = q} & 0 & \cdots \end{pmatrix}
+   \end{align*}
+
+
+   \item Parameter vector $\beta$ with entries $\beta_{jk}$
+
+   \begin{align*}
+     \boldsymbol\beta_{pq \times 1} = \begin{pmatrix}
+     \beta_{j = 1, k = 1}\\ \vdots \\
+     \beta_{j = p, k = 1} \\ \vdots \\
+     \beta_{j = 1, k = q} \\ \vdots \\
+     \beta_{j = p, k = q}
+   \end{pmatrix}
+   \end{align*}
+
+
+   \item Link:
+
+   Link covariates to response.
+
+   First assume that $\textbf{y}$ has the same mean and covariance structure as if $\textbf{y}_i \sim Dir(\alpha_{1p}, \ldots , \alpha_{ip})$ for all $i = 1, \ldots, n$.
+
+   Then,
+
+   \begin{align*}
+     g(\alpha) = \log(\alpha) &= X \beta \\
+     \log(\alpha_{ij}) &= x_{i} \beta_{ij}
+   \end{align*}
+
 
 
 
@@ -90,16 +135,53 @@ Include citations!
 
 \section{Dirichlet ideas }
 
+Assume $\eta_i = (\eta_{i1}, \ldots , \eta_{ip}) \sim Dir(\alpha_{i1}, \ldots , \alpha_{ip})$, and $\sum_{j=1}^p \alpha_{ij} = \alpha_{i0}$
+
+\subsection{Dirichlet Expected value}
+
+\[E(\eta_{ij}) = \frac{\alpha_{ij}}{\alpha_{i0}} \]
+
+
 \subsection{Dirichlet variance }
+
+\begin{align*}
+  Var(\eta_{ij}) &= \frac{\alpha_{ij}(\alpha_{i0} - \alpha_{ij})}{\alpha_{i0}^2(\alpha_{i0} + 1)}
+\end{align*}
+
+Note: $0 \leq Var(\eta_{ij}) \leq 1$
 
 \subsection{Dirichlet covariance }
 
+For $i \neq j$
+
+\begin{align*}
+  Cov(\eta_{is}, \eta_{it}) &=  - \frac{\alpha_{is}\alpha_{it}}{\alpha_{i0}^2(\alpha_{i0} + 1)}
+\end{align*}
+
+
+Note this matrix is singular.
+Note this quantity is always negative
+
 \subsection{Dirichlet correlation }
+
+For $i \neq j$
+
+\begin{align*}
+  Cor(\eta_{is}, \eta_{it}) &= \frac{Cov(\eta_{is}, \eta_{it})}{\sqrt{Var(\eta_{is})Var(\eta_{it})}}\\
+  &= -  \frac{\alpha_{is}\alpha_{it}}{\alpha_{i0}^2(\alpha_{i0} + 1)} \cdot \sqrt{\frac{\alpha_{i0}^2(\alpha_{i0} + 1)}{\alpha_{is}(\alpha_{i0} - \alpha_{is})}}\sqrt{\frac{\alpha_{i0}^2(\alpha_{i0} + 1)}{\alpha_{it}(\alpha_{i0} - \alpha_{it})}}\\
+  &= - \sqrt{\frac{\alpha_{is}\alpha_{it}}{(\alpha_{i0} - \alpha_{is})(\alpha_{i0} - \alpha_{it})}}
+\end{align*}
+
+
+Note this is always negative
 
 \section{GEE ideas}
 
+
+
+
 (include definitions of all )
 
-
+\section{Identifiability issues}
 
 \end{document}
