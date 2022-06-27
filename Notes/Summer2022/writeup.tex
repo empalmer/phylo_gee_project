@@ -18,6 +18,15 @@
  }
  \newcommand{\bb}{\mathbb}
  \usepackage{sectsty}
+
+% For bibliography
+\usepackage[
+backend=biber,
+style=authoryear,
+sorting=ynt
+]{biblatex}
+\addbibresource{Writeup.bib}
+
 \subsectionfont{\large\underline}
 \fancyhf{}
 \renewcommand\thesection{}
@@ -83,19 +92,25 @@ Include citations!
    Design matrix $\mathbf{x}$ ('little x').
 
 \begin{align*}
-  \mathbf{x} &= \begin{pmatrix}x_{i=1, k = 1} & \cdots & x_{i = 1, k = q}\\
-\vdots & \ddots & \\
+  \mathbf{x}_{n \times q} &= \begin{pmatrix}x_{i=1, k = 1} & \cdots & x_{i = 1, k = q}\\
+  x_{i=2, k = 1} & \cdots & x_{i = 2, k = q}\\
+\vdots & \ddots &  \vdots \\
 x_{i = n, k = 1} & \cdots & x_{i = n, k = q}\end{pmatrix}
 \end{align*}
 
 
-    Since we don't have coefficient values measured on each ASV, they are only measured on each sample. Thus $x_{ij} = x_{i}$ for all $j = 1, \ldots , p$. Then we convert to design matrix big X:
+    We don't have coefficient values measured on each ASV (i.e. no $j$ index), they are only measured on each sample. Thus $x_{ij} = x_{i}$ for all $j = 1, \ldots , p$. Then we convert to design matrix big X:
 
-   Design matrix $X$:
+   \item Design matrix $X$:
 
    \begin{align*}
-     X &= x \otimes I_p\\
-     &= \begin{pmatrix} x_{i = 1, k = 1} & 0 & \cdots & 0 \overbrace{\cdots}^p & 0  & x_{i = 1, k = q} & 0 & \cdots & 0 \\ 0 & x_{i = 1, k = 1} \\ x_{i = 2, k = 1} & 0 & \cdots & x_{i = 2, k = 2} & \cdots & x_{i = 2, k = q} & 0 & \cdots \end{pmatrix}
+     X_{np \times pq} &= x \otimes I_p\\
+     &= \begin{pmatrix} x_{i = 1, k = 1} & \overbrace{0 \cdots  0}^p &   & x_{i = 1, k = 2} & 0  \cdots  0 & \cdots &  x_{i = 1, k = q} & 0 \cdots 0  \\
+    0 & x_{i = 1, k = 1}  & 0 \cdots 0 & 0 &  x_{i = 1, k = 2} & 0 \cdots 0 & 0 & \\
+    \vdots \\
+    & 0 \cdots 0 & x_{i = 1, k = 1} \\
+     x_{i = 2, k = 1} & 0 & \cdots & x_{i = 2, k = 2} & \cdots & x_{i = 2, k = q} & 0 \\
+   \vdots  \end{pmatrix}
    \end{align*}
 
 
@@ -103,8 +118,10 @@ x_{i = n, k = 1} & \cdots & x_{i = n, k = q}\end{pmatrix}
 
    \begin{align*}
      \boldsymbol\beta_{pq \times 1} = \begin{pmatrix}
-     \beta_{j = 1, k = 1}\\ \vdots \\
-     \beta_{j = p, k = 1} \\ \vdots \\
+     \beta_{j = 1, k = 1}\\
+     \beta_{j = 2, k = 1} \\\vdots \\
+     \beta_{j = p, k = 1} \\
+     \beta_{j = 1, k = 2} \\ \vdots \\
      \beta_{j = 1, k = q} \\ \vdots \\
      \beta_{j = p, k = q}
    \end{pmatrix}
@@ -121,11 +138,12 @@ x_{i = n, k = 1} & \cdots & x_{i = n, k = q}\end{pmatrix}
 
    \begin{align*}
      g(\alpha) = \log(\alpha) &= X \beta \\
-     \log(\alpha_{ij}) &= x_{i} \beta_{ij}
+     \log(\alpha_{ij}) &= x_{i} \beta_{j}
    \end{align*}
 
+Where $\beta_j = (\beta_{j, k = 1}, \ldots \beta_{j, k = q})^t$, and $x_i = (x_{i1}, \ldots , x_{iq})$
 
-
+This link function makes sense since $\alpha > 0$.
 
 \end{itemize}
 
@@ -175,13 +193,141 @@ For $i \neq j$
 
 Note this is always negative
 
-\section{GEE ideas}
+\section{GEEs }
+
+The collection of measurements taken on a single sample are assumed to be correlated. The entries in $\mathbf{y}_{i}$ for a given $i$ are correlated.
+
+One such analysis method useful for correlated data are Generalized Estimating Equations. Originally proposed by
+
+
+The GEE equations are
+
+\begin{align*}
+  \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)_{pq \times p}^t\mathbf{V}_{i_{p \times p}}^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i)_{p \times 1} = 0
+\end{align*}
+
+
+\begin{itemize}
+  \item $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$: Workign covariance matrix
+  \item $diag(A_i) = \sqrt{Var(\eta_{i})}$: Square root of dirichlet variance.
+  \item $R_i$: working correlation matrix, see below, mixture of dirichlet and phylogenetic correaltion.
+  \item $\left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)$ : Matrix of partial derivatives, defined below
+  \item $Y_i$: response ASV proportions $0 < Y_i < 1$
+  \item $\mu_i$: Expected mean: $E(Y_i) = \frac{\alpha_i}{\alpha_{i0}}$
+\end{itemize}
 
 
 
 
-(include definitions of all )
+ Derivation of $\left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)$
+
+\begin{align*}
+  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta}\right)^t &= \left(\frac{\partial  }{\partial \boldsymbol \beta} \frac{\boldsymbol\alpha_{i}}{\alpha_{i0}} \right)^t\\
+  &= \left(\frac{\partial  }{\partial \boldsymbol \beta} \frac{e^{\mathbf{x}_i \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x_{ij}}\boldsymbol\beta}} \right)^t\\
+  &= \begin{pmatrix}
+        \frac{\partial }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x_i}^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_1}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}\\
+        \vdots & \ddots & \vdots \\
+        \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_1}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta_p}\frac{e^{\mathbf{x}_i^T \boldsymbol\beta_p}}{\sum_{j = 1}^pe^{\mathbf{x}_i^T \boldsymbol\beta_j}}
+  \end{pmatrix}\\
+  &= \frac{1}{\alpha_{i0}^2} \begin{pmatrix} x_1 \alpha_1 \alpha_0 - \alpha_1 x_1 \alpha_1 & - \alpha_2 x_1 \alpha_1 & \cdots & - \alpha_p x_1 \alpha_1 \\
+x_2 \alpha_1 \alpha_0 - \alpha_1 x_2 \alpha_1 & - \alpha_2 x_2 \alpha_1 & \cdots & -\alpha_p x_2 \alpha_1 \\
+\vdots & \vdots &  \ddots & \vdots \\
+x_q\alpha_1\alpha_0 - \alpha_1 x_q\alpha_1 & - \alpha_2 x_q \alpha_1 &  \cdots  & \vdots  \\
+- \alpha_1x_1\alpha_2 & x_1 \alpha_2\alpha_0 - \alpha_2 x_2\alpha_2 &   & \\
+\vdots & \vdots & \ddots & \vdots \\
+- \alpha_1x_q\alpha_p & \cdots  & & x_q\alpha_p\alpha_0 - \alpha_px_p\alpha_p
+\end{pmatrix}_{pq \times p}\\
+&= \frac{1}{a_{i0}} \begin{pmatrix}x_1 \alpha_1 & 0 & \cdots & 0 \\
+x_2 \alpha_1 & 0 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+x_q\alpha_1 & 0 & \cdots & 0 \\
+0 & x_1 \alpha_2 & \cdots & 0 \\
+0 & x_2 \alpha_2 & \cdots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots & x_1 \alpha_p
+\end{pmatrix} - \frac{1}{\alpha_{i0}^2}\begin{pmatrix} \alpha_1^2 x_1 & \alpha_1\alpha_2 x_1 & \cdots & \alpha_1\alpha_p x_1 \\
+\alpha_1^2 x_2 &\alpha_1\alpha_2 x_2 & \cdots &  \alpha_1\alpha_p x_2\\
+\vdots & \vdots &\ddots & \vdots \\
+\alpha_1^2 x_q & \alpha_1\alpha_2 x_q & \cdots & \alpha_1 \alpha_p x_q\\
+\alpha_1\alpha_2x_1 & \alpha_2^2  x_1 & \cdots & \alpha_2 \alpha_p x_1 \\
+\alpha_1\alpha_2x_2 & \alpha_2^2  x_2 & \cdots & \alpha_2 \alpha_p x_2\\
+\vdots & \vdots & \ddots &\vdots \\
+\alpha_1\alpha_p x_q & \alpha_2\alpha_p x_q & \cdots & \alpha_p^2 x_q\end{pmatrix}\\
+% &= \frac{1}{\alpha_{i0}} \begin{pmatrix}\alpha_1 \mathbf{x}_i & 0 & \\
+% & \ddots & \\
+% 0 & & \alpha_p \mathbf{x}_i\end{pmatrix}_{pq \times p} - \frac{1}{\alpha_{i0}^2} \boldsymbol\alpha \boldsymbol\alpha^t \otimes \mathbf{x}_i\\
+&= \frac{1}{\alpha_{i0}}[I_p \otimes \mathbf{x}_i] diag(\boldsymbol\alpha_i) - \frac{1}{\alpha_{i0}^2} \boldsymbol\alpha_i \boldsymbol\alpha_i^t \otimes \mathbf{x}_i
+% &= \frac{1}{\alpha_{i0}^2}[\alpha_0 \boldsymbol1_p \boldsymbol\alpha \otimes \mathbf{x}_i - \boldsymbol\alpha \boldsymbol\alpha^t \otimes \mathbf{x}_i]
+%   &= \begin{pmatrix}
+%         \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 1}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial}{\partial \boldsymbol\beta_{1,1}}
+%         \frac{e^{\mathbf{x}_{ip} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}\\
+%         \frac{\partial}{\partial \boldsymbol\beta_{j = 1, k = 2}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^p e^{\mathbf{x}_{ij} \boldsymbol\beta}} & \vdots & \vdots \\
+%         \vdots & \vdots & \vdots \\
+%         \frac{\partial  }{\partial \boldsymbol\beta_{j = p, k = q}}\frac{e^{\mathbf{x}_{i1} \boldsymbol\beta}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}} & \cdots & \frac{\partial  }{\partial \boldsymbol\beta}\frac{e^{\mathbf{x}_{ip} \boldsymbol\beta_{p,q}}}{\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta}}
+%   \end{pmatrix}_{np \times p}\\
+%   &= \frac{1}{\left(\sum_{j = 1}^pe^{\mathbf{x}_{ij} \boldsymbol\beta} \right)^2} \begin{pmatrix}
+% x_{i1} \alpha_{i1} \alpha_{i0} - x_{iq}\alpha_{i1}\alpha_{i1} & \cdots & - x_{i1}\alpha_{i1}\alpha_{ip}\\
+% \vdots & \vdots & \vdots \\
+% - x_{i1}\alpha_{i1}\alpha_{i2} & x_{i2} \alpha_{i0}\alpha_{i2} - x_{i2}\alpha_{i2}\alpha_{i2} & \cdots \\
+% \vdots & \ddots & \vdots\\
+% - x_{i1} \alpha_{i1}\alpha_{ip} & \cdots & x_{iq}\alpha_{ip}\alpha_{i0} - x_{iq} \alpha_{ip}\alpha_{ip}\\
+% \vdots & \ddots & \vdots
+%   \end{pmatrix}\\
+  % &= \frac{1}{\alpha_{i0}^2} \left(\alpha_{i0} \mathbf{x}_i \text{diag}(\boldsymbol\alpha_i) - \mathbf{x}_i \boldsymbol\alpha_i^T \boldsymbol\alpha_i \right)
+\end{align*}
+
+\section{GEE algorithm}
+
+Let $G$ be the GEE equation, and $H$ be the hessian.
+
+
+
 
 \section{Identifiability issues}
+
+Note that we can write the mean:
+
+\begin{align*}
+  \mu_{ij} &= \frac{\alpha_{ij}}{\alpha_{i0}}\\
+  &= \frac{e^{x_i\beta_j}}{\sum_{s = 1}^p e^{x_i\beta_s }}\\
+  &= \frac{e^{x_i\beta_j}}{e^{x_i\beta_1} + \cdots + e^{x_i\beta_p}}\\
+  &= \frac{e^{\gamma}}{e^{\gamma}}\frac{e^{x_i\beta_j}}{e^{x_i\beta_1} + \cdots + e^{x_i\beta_p}}\\
+  &=
+\end{align*}
+
+Thus $\mu_{ij}$ is the same regardless of if $\beta = (\beta_1, \ldots, \beta_p)$ or $\beta = (\beta_1 + \gamma, \cdots , \beta_p + \gamma)$.
+
+Thus the mean is non-identifiable.
+
+Check if this is the same for the variance.
+
+\newpage
+\section{Penalty}
+
+To solve this problem, we first attempt to add a penalty.
+
+Penalty:
+
+\begin{align*}
+  \lambda \left(\sum_{j=1}^p \beta_p \right)^2 &= \lambda \beta^t 1 1^t \beta
+\end{align*}
+
+New GEE eqn
+\begin{align*}
+ G^* &= G + \frac{\partial \text{Penalty}}{\partial \beta} \\
+ &= G + 2\lambda 1 1^t \beta
+\end{align*}
+
+ New Hessian:
+
+ \begin{align*}
+   H^* &= H + \frac{\partial ^2 \text{Penalty}}{\partial ^2 } \\
+   &= H + 2 \lambda 1 1^t
+ \end{align*}
+
+
+\newpage
+\printbibliography
+
 
 \end{document}

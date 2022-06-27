@@ -18,6 +18,15 @@
  }
  \newcommand{\bb}{\mathbb}
 
+% For bibliography
+\usepackage[
+backend=biber,
+style=authoryear,
+sorting=ynt
+]{biblatex}
+\addbibresource{summer2022-2.bib}
+
+
 % For checklist
 \usepackage{enumitem,amssymb}
 \newlist{todolist}{itemize}{2}
@@ -75,7 +84,7 @@
 
 This week I focused on taking a step back and writing up current research, make a place for all definitions used in one place.
 
-Todo: 
+Todo:
 Literature search on dirichlet, look at link function, see if used logit,
 
 Implement penalty first.
@@ -86,6 +95,114 @@ Continue
 
 Start career search
 
+\section{Wednesday Jun 22}
 
 
+\begin{todolist}
+  \item Work on writeup
+  \begin{itemize}
+      \item Create bibliography
+      \item Make current document of all definitions
+      \item Writeup dirichlet properties
+      \item Citations
+      \item Biological definitions
+      \item GEE notation
+      \item Writeup of identifiability issue
+  \end{itemize}
+  \item Literature search on dirichlet logit link function
+  \item Implemement penalty
+
+\end{todolist}
+
+
+
+\subsection{Literature search on dirichlet link }
+
+\cite{Douma2019a} Use the log link like we were under normal parametrization: $\log(\alpha_c) = \eta_c = X_c\beta_c$.
+
+Alternatively,
+
+\[E(p_c) = \mu_c \]
+
+and $var[p_c] = \frac{\mu_c(1 - \mu_c)}{\phi+ 1}$ , where $\phi = \alpha_0$.
+
+Then the link function for $\mu$ is the multinomial logit function.
+
+Somewhat reccomends alternate parametrization. Then only $C-1$ values fitted. treat $C$ as baseline category
+
+$\phi$ as the precision parameter, can model with log function.
+
+So model both $\mu$ and $\phi$? seperately?
+
+Zero inflation: offers different transformation
+\[p^* = \frac{p(n-1) + \frac{1}{C}}{n} \]
+Also reccomended by \cite{Maier2014}
+This compresses the data symmetrically around .5 so extreme values are more affected.
+
+Reccomended R packages: DIRMULT, BRMS, DirichletReg
+
+Notes zero-augmented Dirichlet regression \cite{Tsagris2017}
+
+Uses the logit link? or the one with a 1 on the bottom.
+
+Could be interesting to look further into this method
+
+
+\section{June 23}
+
+\begin{todolist}
+  \item Work on writeup for first pomofocus
+  \item Add penalty.
+\end{todolist}
+
+
+Change in beta order wouldnt change the GEE equations, but wondering how current formulation outputs old formulation? Explore code more.
+
+
+\subsection{Start on the penalty}
+
+I dont quite understand the derivatives parts...
+
+We want to heavily penalize
+
+\begin{itemize}
+  \item Add penalty $\lambda \sum_{j = 1}^p \beta_j^2$ to GEE equation
+  \item Add penalty
+\end{itemize}
+
+\subsection{Meeting}:
+
+Messed up on penalty, shoudl be matrix of 1s! Try this again.
+
+Lambda larger,
+
+Why does it have noise in only one clump?
+
+Try larger sample size? Is it variation? Seems like.
+
+Add diagonal back to hessian.
+
+Try continuous X
+
+Something with intercept.
+TODO: Constraint has to be for each beta. Ie the intercept betas have to sum to 0, same for all other covariate betas.
+
+
+Interpretability on alphas. Cant interpret on betas since
+
+
+Start trying the logit link function. Will need to re-derive the matrix of partial derivatives.
+
+
+
+\newpage
+\section{June 27th}
+
+\begin{todolist}
+  \item First \& Second pomofocus on the writeup
+  \item Third pomofocus on literature review
+\end{todolist}
+
+\newpage
+\printbibliography
 \end{document}
