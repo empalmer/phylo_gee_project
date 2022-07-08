@@ -1,0 +1,88 @@
+ \documentclass[10pt]{article}
+ \usepackage{sectsty}
+ \usepackage[utf8]{inputenc}
+ \usepackage[english]{babel}
+ \usepackage{mathrsfs}
+ \usepackage{graphicx}
+ \usepackage[euler]{textgreek}
+ \usepackage{fancyhdr} % For header
+ \usepackage{mdframed} % for boxes
+ \usepackage{geometry} % For margins
+ \usepackage{amsthm} % For theorems
+ \usepackage{amsmath,amsfonts} % For math
+  \geometry{
+  a4paper,
+  left=.75in,
+  right=.75in,
+  top=1in,
+  }
+
+
+  % bibliography
+  \usepackage[
+    backend=biber,
+    style=alphabetic,
+    sorting=ynt
+    ]{biblatex}
+    %\addbibresource{sample.bib}
+
+
+  \newcommand{\bb}{\mathbb}
+ \subsectionfont{\large\underline}
+ \fancyhf{}
+ \renewcommand\thesection{}
+ \renewcommand\thesubsection{}
+ \fancyhead[L]{\textbf{\leftmark\rightmark}}
+ \fancyhead[R]{\textbf{Summer todolist}}
+ %\rhead{\textbf{Summer todolist}}
+ %\lhead{\textbf{Week}}
+ \rfoot{Page \thepage}
+ \pagestyle{fancy}
+
+
+% For checklist
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+\hspace{-2.5pt}}
+
+ \theoremstyle{definition}
+ \newtheorem*{definition}{Definition}
+ \newtheorem*{example}{Example}
+ \newtheorem*{theorem}{Theorem}
+ \newtheorem*{lemma}{Lemma}
+ \newtheorem*{corollary}{Corrolary}
+ \setlength{\parskip}{1em}
+ \setlength{\parindent}{0pt}
+ \begin{document}
+
+ \begin{todolist}
+   \item Writeup
+   \begin{todolist}
+     \item  modifying the partials derivation,
+     \item Introduction!
+     \item GEE algorithm
+     \item Matrix form of GEE equations Explain how this is the same!
+   \end{todolist}
+   \item Literature review (each day)
+   \item Thinking about next project
+   \item Career search
+   \item Interpretation about log link approach
+   \item Derivation of logit link approach (partial derivatives!)
+   \item Correctly implement penalty
+   \item Go through code from beginning, making sure everything does what I think, and vectors and matrices are correct.
+   \item Implement penalty correctly (ie with matrix of 1s)
+   \item Change penalty to sum to 0 for each of the covariates
+   \item Figure out how to submit jobs to server for simulations.
+   \item Simulation output for research meeting next week
+   \item Figure out what code would look like if it was the sum format
+   \item Figure out what consraint looks like for all $k$.
+ \end{todolist}
+
+
+ %\printbibliography
+ \end{document}

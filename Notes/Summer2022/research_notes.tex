@@ -24,7 +24,7 @@ backend=biber,
 style=authoryear,
 sorting=ynt
 ]{biblatex}
-\addbibresource{summer2022-2.bib}
+\addbibresource{research_notes_summer2022.bib}
 
 
 % For checklist
@@ -118,7 +118,7 @@ Start career search
 
 \subsection{Literature search on dirichlet link }
 
-\cite{Douma2019a} Use the log link like we were under normal parametrization: $\log(\alpha_c) = \eta_c = X_c\beta_c$.
+\cite{douma2019a} Use the log link like we were under normal parametrization: $\log(\alpha_c) = \eta_c = X_c\beta_c$.
 
 Alternatively,
 
@@ -136,12 +136,12 @@ So model both $\mu$ and $\phi$? seperately?
 
 Zero inflation: offers different transformation
 \[p^* = \frac{p(n-1) + \frac{1}{C}}{n} \]
-Also reccomended by \cite{Maier2014}
+Also reccomended by \cite{maier2014}
 This compresses the data symmetrically around .5 so extreme values are more affected.
 
 Reccomended R packages: DIRMULT, BRMS, DirichletReg
 
-Notes zero-augmented Dirichlet regression \cite{Tsagris2017}
+Notes zero-augmented Dirichlet regression \cite{tsagris2017}
 
 Uses the logit link? or the one with a 1 on the bottom.
 
@@ -199,9 +199,119 @@ Start trying the logit link function. Will need to re-derive the matrix of parti
 \section{June 27th}
 
 \begin{todolist}
-  \item First \& Second pomofocus on the writeup
-  \item Third pomofocus on literature review
+  \item[\done] First \& Second pomofocus on the writeup
+  \begin{itemize}
+    \item Some spell check and GEE description, working on bib files.
+  \end{itemize}
+  \item Third and pomofocus on literature review
+  \begin{itemize}
+    \item Reading \cite{luna2020}
+    \item Also zotero custimization
+  \end{itemize}
 \end{todolist}
+
+
+\subsection{Literature review: \cite{luna2020}}
+Could be potential for Journal club.
+Abstract:
+Longitudinal negative binomial mixed effects model
+Use hazard function
+Joint model: Longitudinal and time to event data.
+
+Method for determining how much changes in microbiome affect disease onset.
+Introduction
+One previous method to use smoothing splines to determine time intervals in which compositions are different between groups.
+Prev methods only identify associations, not determine how much.
+
+Methods:
+Joint model: finds associations between time-dependent covariates and event times. Uses longitudinal submodel to model time dependent covariates, and then using those in a time to event model.
+
+Longitudinal submodel uses read counts (non Gaussian, overdispersed)
+Uses neg binom distribution to model overdispersed count data.
+
+Model subject specific taxon abundances over time using negative binom linear mixed effects model. (log link)
+Include offset of log of total sequence reads
+
+Event submodel: use predicted relative abundances from mixed model into a hazard function.
+
+
+\section{Tuesday June 28}
+
+\begin{todolist}
+  \item 1st Pomofocus: Read paper
+  \begin{itemize}
+    \item Read some of \cite{holmes2012}
+  \end{itemize}
+  \item 2nd Pomofocus: Writeup
+  \item 3rd Pomofocus: State of research, organize, plan.
+\end{todolist}
+
+\subsection{Read paper Dirichlet Multinomial Mixtures \cite{holmes2012}}
+
+Cluster into different groups, each group has its own Dirichlet mixture.
+
+\subsection{Writeup progress}
+
+Working more on GEE section:
+Things still needed to be done include:
+
+\begin{todolist}
+  \item  modifying the partials derivation,
+  \item Introduction!
+  \item GEE algorithm
+  \item More on identifiability
+\end{todolist}
+
+
+\subsection{Understanding notes from meeting}
+
+Consider a discrete valued covariate $x$. This mimics what I expect commonly used data to be like, for example disease status or antibiotic usage.
+
+Consider the simulation values I have (although slightly simpler). Let $n = 500$ for simulations, which seems to give a decently valued estimate.
+
+Let $p = 10$, the number of ASVs, let $q = 2$, for one covariate and an intercept. $x_i \in (0,1)$, with a 50/50 split. so,
+
+\[\mathbf{x} = (\overbrace{0 \cdots 0}^{250}, \overbrace{1 \cdots 1}^{250}) \]
+
+
+Then, assume the true $\beta$ is
+
+\begin{align*}
+  \beta &= \begin{pmatrix} \beta_{11} = 0 \\ \vdots \\
+\beta_{p1} = 0 \\
+\beta_{12} = 1 \\ \vdots \\\beta_{p/2,2} = 1 \\\beta_{p/2 + 1,2} = -1\\ \vdots \\ \beta_{p2} = -1 \end{pmatrix}
+\end{align*}
+
+This follows our \textbf{constraint}:
+
+\begin{align*}
+  \sum_{j = 1}^p \beta_{jk} = 0 \quad \text{for all } k
+\end{align*}
+
+Then we have:
+
+\begin{align*}
+  \log(\alpha_{ij}) = x_i\beta \\
+  \alpha_{ij} = e^{x_i}\beta\\
+   \begin{pmatrix}\alpha_{i = 1, j = 1}\\\vdots \\
+   \alpha_{i = 1, j = p/2+1}  \\ \vdots \\
+   \alpha_{i = 251, j = 1} \\ \vdots \\ \alpha_{i = 251, j = p/2+1} \\ \vdots
+ \end{pmatrix} &= \begin{pmatrix} e^{\beta_{11} + x \beta_{12}} = e^{0 + 0 \cdot 1} \\ \vdots \\ e^{0 + 0 \cdot -1} \\ \vdots \\ e^{0 + 1} \\ \vdots \\e^{0 - 1} \\ \vdots
+\end{pmatrix}
+\end{align*}
+
+Thus $\alpha_{ij} = e^0 = 1$ for $i = 1, \ldots, 250, j = 1, \ldots , p$, and for $i > 250$, $\alpha_{ij} = e^1$ for $j \leq p/2$ and $\alpha_{ij}= e^{-1}$ for $j > p/2$
+
+\begin{align*}
+  \alpha_{ij} = \begin{cases}
+  1   &   i \leq 250\\
+  e^1   & i > 250, j \leq p/2\\
+  e^{-1} & i > 250, j > p/2
+  \end{cases}
+\end{align*}
+
+
+Idea: since there is this weird interpretation problem, maybe we should focus on correlation output and build networks??
 
 \newpage
 \printbibliography

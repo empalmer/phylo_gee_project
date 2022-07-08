@@ -18,7 +18,7 @@
  }
  \newcommand{\bb}{\mathbb}
  \usepackage{sectsty}
-
+ \usepackage{graphicx}
 % For bibliography
 \usepackage[
 backend=biber,
@@ -26,6 +26,9 @@ style=authoryear,
 sorting=ynt
 ]{biblatex}
 \addbibresource{Writeup.bib}
+
+\newcommand{\rvline}{\hspace*{-\arraycolsep}\vline\hspace*{-\arraycolsep}}
+
 
 \subsectionfont{\large\underline}
 \fancyhf{}
@@ -105,7 +108,27 @@ x_{i = n, k = 1} & \cdots & x_{i = n, k = q}\end{pmatrix}
 
    \begin{align*}
      X_{np \times pq} &= x \otimes I_p\\
-     &= \begin{pmatrix} x_{i = 1, k = 1} & \overbrace{0 \cdots  0}^p &   & x_{i = 1, k = 2} & 0  \cdots  0 & \cdots &  x_{i = 1, k = q} & 0 \cdots 0  \\
+     &= \begin{pmatrix}
+       p \left\{ \begin{matrix}
+        x_{i = 1, k = 1} & 0 & \cdots & 0 \\
+        0 & x_{i = 1, k = 1} &  \cdots \\
+        \vdots & & \ddots  & \vdots \\
+        0 & \cdots & 0 & x_{i = 1, k = 1}
+     \end{matrix} \right.
+     & \rvline
+     \begin{matrix}
+      x_{i = 1, k = 2} & 0 & \cdots & 0 \\
+      0 & x_{i = 1, k = 2} &  \cdots \\
+      \vdots & & \ddots  & \vdots \\
+      0 & \cdots & 0 & x_{i = 1, k = 2}
+   \end{matrix}
+   & \rvline & \cdots  & \rvline & \begin{matrix}
+     x_{i = 1, k = q} & 0 & \cdots & 0 \\
+     0 & x_{i = 1, k = q} &  \cdots \\
+     \vdots & & \ddots  & \vdots \\
+     0 & \cdots & 0 & x_{i = 1, k = q}
+  \end{matrix}\\
+     \hline
     0 & x_{i = 1, k = 1}  & 0 \cdots 0 & 0 &  x_{i = 1, k = 2} & 0 \cdots 0 & 0 & \\
     \vdots \\
     & 0 \cdots 0 & x_{i = 1, k = 1} \\
@@ -197,8 +220,38 @@ Note this is always negative
 
 The collection of measurements taken on a single sample are assumed to be correlated. The entries in $\mathbf{y}_{i}$ for a given $i$ are correlated.
 
-One such analysis method useful for correlated data are Generalized Estimating Equations. Originally proposed by
+One such analysis method useful for correlated data are Generalized Estimating Equations. Originally proposed by \cite{liang1986} for longitudinal data, this method uses a working correlation structure, which allows for any specified correlation structure. Even if the correlation structure is misspecified, the resulting estimates are consistent.
 
+The GEE method is a marginal model, only needing the first two moments and a link function to specify the method. In other words, this method does not perform any calculations on the full distribution likelihood. Therefore this method is useful in cases when the likelihood is intractable or very difficult to work with.
+
+We assume that
+
+\begin{align*}
+  E(y_{ij}) &= \mu_{ij} = a'(\theta_{ij})\\
+  Var(y_{ij}) &= a''(\theta_{ij})
+\end{align*}
+
+Where $\theta_{ij} = $
+
+$\phi$ is then the dispersion parameter.
+
+
+We link the expected mean to a set of linear predictors by
+
+\begin{align*}
+  g(\mu_i) &= \mathbf{x}\boldsymbol\beta
+\end{align*}
+
+Where $g$ is a known invertible link function.
+
+Instead of directly to the mean $\mu_i$, for this parametrization of the Dirichlet distribution, we link the $\alpha$ Dirichlet hyperparameters to a linear predictor. To link $\alpha$s, the $\log$ link is appropriate, since $\alpha > 0$
+
+Thus:
+
+\begin{align*}
+  \log \alpha_{ij} &= x_i \beta_j
+\end{align*}
+See above for more details.
 
 The GEE equations are
 
@@ -206,11 +259,13 @@ The GEE equations are
   \sum_{i = 1}^n  \left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)_{pq \times p}^t\mathbf{V}_{i_{p \times p}}^{-1}(\mathbf{Y_i} - \boldsymbol\mu_i)_{p \times 1} = 0
 \end{align*}
 
+The estimator $\hat\beta$ is the solution to this set of equations.
+
 
 \begin{itemize}
-  \item $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$: Workign covariance matrix
-  \item $diag(A_i) = \sqrt{Var(\eta_{i})}$: Square root of dirichlet variance.
-  \item $R_i$: working correlation matrix, see below, mixture of dirichlet and phylogenetic correaltion.
+  \item $\boldsymbol V_i = A_i^{\tfrac{1}{2}}R_iA_i^{\tfrac{1}{2}}$: Working covariance matrix
+  \item $diag(A_i) = \sqrt{Var(\eta_{i})}$: Square root of Dirichlet variance.
+  \item $R_i$: working correlation matrix, see below, mixture of Dirichlet and phylogenetic correlation.
   \item $\left(\frac{\partial  \boldsymbol\mu_i }{\partial \boldsymbol\beta }\right)$ : Matrix of partial derivatives, defined below
   \item $Y_i$: response ASV proportions $0 < Y_i < 1$
   \item $\mu_i$: Expected mean: $E(Y_i) = \frac{\alpha_i}{\alpha_{i0}}$
@@ -324,6 +379,8 @@ New GEE eqn
    H^* &= H + \frac{\partial ^2 \text{Penalty}}{\partial ^2 } \\
    &= H + 2 \lambda 1 1^t
  \end{align*}
+
+\section{Approaches from here}
 
 
 \newpage

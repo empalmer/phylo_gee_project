@@ -152,18 +152,19 @@ plots <- fun_diagnostics(model_output, descr)
 plots
 
 
-# Stability -------------------------------------------------------------
+# Stability/function simulation -------------------------------------------------------------
 source(here::here("R", "helpers.R"))
 source(here::here("R", "dirichlet_functions.R"))
 source(here::here("R", "gee_functions.R"))
 
-n <- 500
+n <- 5000
 p <- 15
 q <- 2
+lambda <- 10000
 
 # Set betas (need one for each p)
-beta <- rep(3, 15)
-beta <- c(rep(-1, 5), rep(2, 10))
+# beta <- rep(3, 15)
+beta <- c(rep(-4, 5), rep(2, 10))
 # add true 0 intercept
 beta <- as.vector(t(matrix(c( rep(0, p),beta), nrow = p)))
 # If intercept: 
@@ -185,14 +186,14 @@ alpha0 <- rowSums(matrix(alpha, nrow = n, ncol = p, byrow = T))
 ys <- simulate_dirichlet_y(alpha, n, p)
 
 # if initilizing beta as 0 to make algorithm figure it out
-#beta <- rep(0, p*q)
+beta <- rep(0, p*q)
 
 update_list <- list()
 g_list <- list()
 beta_list <- list()
 diff_list <- list()
 phi_list <- list()
-n_rep <- 100
+n_rep <- 20
 for(i in 1:n_rep){
   beta_list[[i]] <- beta
   eta <- as.vector(X %*% beta)
@@ -216,9 +217,13 @@ for(i in 1:n_rep){
   phi_list[[i]] <- phi
   V_inv <- phi * A %*% R_inv %*% A
   
-  G <- partials %*% V_inv %*% as.matrix(ys - ymean)
+  G <- partials %*% V_inv %*% as.matrix(ys - ymean) +
+        2 * lambda * tcrossprod(rep(1, p*q)) %*% beta
+  #  2 * lambda * p * q *sum(beta)
   g_list[[i]] <- sum(as.vector(G))
-  H <- -partials %*% V_inv %*% t(partials) 
+  H <- -partials %*% V_inv %*% t(partials) +
+        2 * lambda * tcrossprod(rep(1, p*q)) 
+  #  2 * lambda * p * q 
   
   update <- Matrix::solve(H, G)
   update_list[[i]] <- update
@@ -231,6 +236,7 @@ for(i in 1:n_rep){
   diff_list[[i]] <- sum(abs(beta_new - beta))
   
   beta <- beta_new
+  print(i)
 }
 
 # Plot beta values across iterations. Are they close to true values? 
@@ -245,7 +251,8 @@ betas %>%
   pivot_longer(1:n_rep, names_to = "iteration") %>% 
   ggplot(aes(x = as.numeric(iteration), y = value, group = id, linetype = type)) +
   geom_line() + 
-  labs(x = "iteration", y = "beta")
+  labs(x = "iteration", y = "beta") + 
+  ggtitle("beta -4,2, lambda = 10000, add penalty, init 0, n=5000")
 
 beta_list[[n_rep]]
 
